@@ -1,0 +1,49 @@
+@model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.TipoMaterial>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Tipos de Material</h1>
+<p>
+    @TempData["message"]
+</p>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.IdTipoMaterial)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Nombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Descripcion)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdTipoMaterial)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nombre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Descripcion)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { IdTipoMaterial = item.IdTipoMaterial }) |
+                @Html.ActionLink("Delete", "Delete", new { IdTipoMaterial = item.IdTipoMaterial })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

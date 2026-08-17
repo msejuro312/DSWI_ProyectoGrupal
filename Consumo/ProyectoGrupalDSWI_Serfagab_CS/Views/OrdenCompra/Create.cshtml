@@ -1,0 +1,131 @@
+@model ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompraVM
+
+@{
+    ViewData["Title"] = "Nueva Orden de Compra";
+    var materiales = (ViewBag.materiales as List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Material>)
+        ?? new List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Material>();
+}
+
+<h1>Nueva Orden de Compra</h1>
+<hr />
+<form asp-action="Create" method="post">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="IdProveedor" class="control-label"></label>
+                <select asp-for="IdProveedor" asp-items="@ViewBag.proveedores" class="form-select">
+                    <option value="">-- Seleccione proveedor --</option>
+                </select>
+                <span asp-validation-for="IdProveedor" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="Fecha" class="control-label"></label>
+                <input asp-for="Fecha" class="form-control" type="date" />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="Estado" class="control-label"></label>
+                <input asp-for="Estado" class="form-control" readonly />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label asp-for="Observaciones" class="control-label"></label>
+                <input asp-for="Observaciones" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <hr />
+    <h4>Detalle de la orden</h4>
+    <table class="table" id="tablaDetalle">
+        <thead>
+            <tr>
+                <th>Material</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <button type="button" id="btnAgregar" class="btn btn-secondary">+ Agregar material</button>
+
+    <hr />
+    <div class="form-group">
+        <h4>Total: S/ <span id="lblTotal">0.00</span></h4>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Guardar orden" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        var materiales = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(materiales));
+        var contador = 0;
+
+        function nuevaFila(index) {
+            var fila = '<tr>';
+            fila += '<td><select name="Detalles[' + index + '].IdMaterial" class="form-select selectMaterial">';
+            fila += '<option value="">-- Seleccione material --</option>';
+            for (var i = 0; i < materiales.length; i++) {
+                fila += '<option value="' + materiales[i].IdMaterial + '">' + materiales[i].Nombre + '</option>';
+            }
+            fila += '</select></td>';
+            fila += '<td><input type="number" step="0.01" min="0" name="Detalles[' + index + '].Cantidad" class="form-control inputCantidad" value="0" /></td>';
+            fila += '<td><input type="number" step="0.01" min="0" name="Detalles[' + index + '].PrecioUnitario" class="form-control inputPrecio" value="0" /></td>';
+            fila += '<td class="tdSubtotal">0.00</td>';
+            fila += '<td><button type="button" class="btn btn-danger btnQuitar">Quitar</button></td>';
+            fila += '</tr>';
+            return fila;
+        }
+
+        function recalcular() {
+            var total = 0;
+            $('#tablaDetalle tbody tr').each(function () {
+                var cantidad = parseFloat($(this).find('.inputCantidad').val()) || 0;
+                var precio = parseFloat($(this).find('.inputPrecio').val()) || 0;
+                var subtotal = cantidad * precio;
+                $(this).find('.tdSubtotal').text(subtotal.toFixed(2));
+                total += subtotal;
+            });
+            $('#lblTotal').text(total.toFixed(2));
+        }
+
+        $('#btnAgregar').click(function () {
+            $('#tablaDetalle tbody').append(nuevaFila(contador));
+            contador++;
+            recalcular();
+        });
+
+        $(document).on('change', '.selectMaterial, .inputCantidad, .inputPrecio', function () {
+            recalcular();
+        });
+
+        $(document).on('click', '.btnQuitar', function () {
+            $(this).closest('tr').remove();
+            recalcular();
+        });
+
+        $('form').on('submit', function () {
+            var i = 0;
+            $('#tablaDetalle tbody tr').each(function () {
+                var $tr = $(this);
+                $tr.find('.selectMaterial').attr('name', 'Detalles[' + i + '].IdMaterial');
+                $tr.find('.inputCantidad').attr('name', 'Detalles[' + i + '].Cantidad');
+                $tr.find('.inputPrecio').attr('name', 'Detalles[' + i + '].PrecioUnitario');
+                i++;
+            });
+            return true;
+        });
+    </script>
+}

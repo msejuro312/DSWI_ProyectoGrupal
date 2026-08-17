@@ -1,0 +1,67 @@
+@model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Órdenes de Compra</h1>
+<p>
+    @TempData["message"]
+</p>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.IdOrdenCompra)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Proveedor)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Fecha)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Estado)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Total)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Observaciones)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdOrdenCompra)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Proveedor)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Fecha)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Estado)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Total)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Observaciones)
+            </td>
+            <td>
+                @Html.ActionLink("Details", "Details", new { IdOrdenCompra = item.IdOrdenCompra }) |
+                @Html.ActionLink("Delete", "Delete", new { IdOrdenCompra = item.IdOrdenCompra })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

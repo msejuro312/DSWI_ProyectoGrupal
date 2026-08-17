@@ -1,0 +1,79 @@
+@model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Material>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+<p>
+    @TempData["message"]
+</p>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.IdMaterial)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IdTipoMaterial)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Nombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UnidadMedida)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StockActual)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PrecioReferencial)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Descripcion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TipoMaterial)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdMaterial)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdTipoMaterial)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nombre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UnidadMedida)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StockActual)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PrecioReferencial)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Descripcion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TipoMaterial)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { IdMaterial = item.IdMaterial }) |
+                @Html.ActionLink("Delete", "Delete", new { IdMaterial = item.IdMaterial })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
