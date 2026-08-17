@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -6,6 +7,7 @@ using ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models;
 
 namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 {
+    [Authorize]
     public class MaterialController : Controller
     {
         private readonly HttpClient _httpClient;
@@ -94,7 +96,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
-
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Edit(int IdMaterial)
         {
             var material = await getMaterial(IdMaterial);
@@ -113,7 +115,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost]
-
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Edit(Material material)
         {
             var apiResponse = await actualizar(material);
@@ -123,7 +125,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
-
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(int IdMaterial)
         {
             var material = await getMaterial(IdMaterial);
@@ -137,7 +139,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
-
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteConfirmed(int IdMaterial)
         {
             var apiResponse = await eliminar(IdMaterial);

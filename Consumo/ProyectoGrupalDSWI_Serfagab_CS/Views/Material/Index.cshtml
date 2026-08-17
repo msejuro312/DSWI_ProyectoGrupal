@@ -43,8 +43,11 @@
                 <td>@Html.DisplayFor(modelItem => item.Descripcion)</td>
                 <td>@Html.DisplayFor(modelItem => item.TipoMaterial)</td>
                 <td>
-                    @Html.ActionLink("Edit", "Edit", new { IdMaterial = item.IdMaterial }, new { @class = "btn btn-sm btn-warning" })
-                    @Html.ActionLink("Delete", "Delete", new { IdMaterial = item.IdMaterial }, new { @class = "btn btn-sm btn-danger" })
+                    @if (User.IsInRole("ADMIN"))
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { IdMaterial = item.IdMaterial }, new { @class = "btn btn-sm btn-warning" })
+                        @Html.ActionLink("Delete", "Delete", new { IdMaterial = item.IdMaterial }, new { @class = "btn btn-sm btn-danger" })
+                    }
                 </td>
             </tr>
         }

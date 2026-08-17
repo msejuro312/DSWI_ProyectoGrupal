@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models;
 using System.Diagnostics;
 
 namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

@@ -822,3 +822,68 @@ INSERT INTO tbl_detalle_orden_compra (id_orden_compra, id_material, cantidad, pr
 SELECT @idOrden, id_material, 2, 0.57, 2*0.57 FROM tbl_material WHERE nombre = 'Terminal Tipo Ojo 12mm';
 UPDATE tbl_orden_compra SET total = (SELECT SUM(subtotal) FROM tbl_detalle_orden_compra WHERE id_orden_compra = @idOrden) WHERE id_orden_compra = @idOrden;
 GO
+
+-- ============================================================
+-- LOGIN: ROLES Y USUARIOS (AVANCE 3)
+-- ============================================================
+
+-- 1) Tabla de roles
+CREATE TABLE tbl_tipo_usuario
+(
+    id_tipo_usuario INT IDENTITY PRIMARY KEY,
+    nombre NVARCHAR(50) NOT NULL,
+    descripcion NVARCHAR(255)
+);
+GO
+
+INSERT INTO tbl_tipo_usuario (nombre, descripcion)
+VALUES
+('ADMIN', 'Acceso total: crear, editar y eliminar'),
+('USER', 'Solo lectura y crear: no puede editar ni eliminar');
+GO
+
+-- 2) Tabla de usuarios
+CREATE TABLE tbl_usuario
+(
+    id_usuario INT IDENTITY PRIMARY KEY,
+    id_tipo_usuario INT references tbl_tipo_usuario(id_tipo_usuario),
+    usuario NVARCHAR(50) NOT NULL UNIQUE,
+    clave NVARCHAR(64) NOT NULL,
+    nombre_completo NVARCHAR(150) NOT NULL,
+    email NVARCHAR(100),
+    activo BIT DEFAULT 1
+);
+GO
+
+-- 3) Usuarios de prueba (clave guardada como hash SHA256 en hexadecimal)
+INSERT INTO tbl_usuario (id_tipo_usuario, usuario, clave, nombre_completo, email)
+VALUES
+((SELECT id_tipo_usuario FROM tbl_tipo_usuario WHERE nombre = 'ADMIN'), 'admin', '240BE518FABD2724DDB6F04EEB1DA5967448D7E831C08C8FA822809F74C720A9', 'Administrador del sistema', 'admin@serfagab.com'),
+((SELECT id_tipo_usuario FROM tbl_tipo_usuario WHERE nombre = 'USER'), 'user', 'E606E38B0D8C19B24CF0EE3808183162EA7CD63FF7912DBB22B5E803286B4446', 'Usuario de prueba', 'user@serfagab.com');
+GO
+
+-- 4) SP de login: valida activo y hash de la clave; devuelve el usuario con su rol
+create or alter procedure sp_login_usuario
+@usuario NVARCHAR(50),
+@clave NVARCHAR(64),
+@resultado INT OUTPUT
+as
+begin
+    declare @hash nvarchar(64) = lower(convert(nvarchar(64), hashbytes('SHA2_256', convert(varchar(64), @clave)), 2));
+
+    if not exists(select 1 from tbl_usuario u
+                  join tbl_tipo_usuario t on u.id_tipo_usuario = t.id_tipo_usuario
+                  where u.usuario = @usuario and u.clave = @hash and u.activo = 1)
+    begin
+        set @resultado = 0  -- credenciales invalidas o usuario inactivo
+        return
+    end
+
+    set @resultado = 1
+
+    select u.id_usuario, u.usuario, u.nombre_completo, u.email, t.nombre as rol, u.activo
+    from tbl_usuario u
+    join tbl_tipo_usuario t on u.id_tipo_usuario = t.id_tipo_usuario
+    where u.usuario = @usuario and u.clave = @hash and u.activo = 1
+end
+GO

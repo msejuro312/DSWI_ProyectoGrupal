@@ -130,6 +130,7 @@
     <li><a href="#excepciones">Manejo de excepciones en los Services (mejora implementada)</a></li>
     <li><a href="#api-consistencia">Consistencia de la API: listas envueltas en ApiResponse (mejora implementada)</a></li>
     <li><a href="#visuales">Mejoras visuales: DataTables, validaci&oacute;n, badges y alerts (mejora implementada)</a></li>
+    <li><a href="#login">Login con roles ADMIN/USER (mejora implementada)</a></li>
     <li><a href="#avances">Pr&oacute;ximos avances del proyecto (plan detallado)</a></li>
   </ol>
 </div>
@@ -2035,7 +2036,7 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
 
   <p>El sistema <strong>SERFAGAB</strong> completo (seg&uacute;n el proyecto de referencia <code>PROYECTO_LP2_GRUPO_B</code> y su script <code>serfagab.sql</code>) no se queda solo en materiales: suma <strong>proveedores, &oacute;rdenes de compra con detalle, usuarios con login, dashboard y reportes</strong>. Cada avance usa <strong>exactamente la misma arquitectura</strong> que ya dominamos (tabla + SPs + Service + Controller + vista), as&iacute; que todo es incremental.</p>
 
-  <div class="info-box"><strong>&iexcl;Actualizaci&oacute;n!</strong> Los avances <strong>1 (Proveedor)</strong>, <strong>2 (Orden de Compra, ya con Recepcionar)</strong> y <strong>5 (TipoMaterial CRUD)</strong> est&aacute;n <strong>implementados</strong> &mdash; ver <a href="#avances-impl">secci&oacute;n 8</a>. Este plan queda enfocado en lo <strong>pendiente</strong>: <strong>Usuarios/Login</strong> y <strong>Dashboard/Reportes</strong>.</div>
+  <div class="info-box"><strong>&iexcl;Actualizaci&oacute;n!</strong> Los avances <strong>1 (Proveedor)</strong>, <strong>2 (Orden de Compra, ya con Recepcionar)</strong>, <strong>3 (Usuarios/Login con roles ADMIN y USER)</strong> y <strong>5 (TipoMaterial CRUD)</strong> est&aacute;n <strong>implementados</strong> &mdash; ver <a href="#avances-impl">secci&oacute;n 8</a> y <a href="#login">secci&oacute;n 13</a>. Este plan queda enfocado en lo <strong>pendiente</strong>: <strong>Dashboard/Reportes</strong>.</div>
 
   <div class="roadmap">
     <strong>Modelo de datos objetivo (tablas nuevas):</strong>
@@ -2061,11 +2062,9 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
     <li class="summary-step"><strong>Cliente:</strong> listado, formulario "Nueva orden" con <strong>filas din&aacute;micas</strong> (jQuery), vista de detalle y bot&oacute;n <strong>Recepcionar</strong> por fila (solo en <code>PENDIENTE</code>/<code>APROBADA</code>).</li>
   </ol>
 
-  <h3>Avance 3 &mdash; Usuarios y Login</h3>
+  <h3>Avance 3 &mdash; Usuarios y Login <span class="badge">IMPLEMENTADO &mdash; secci&oacute;n 13</span></h3>
   <ol>
-    <li class="summary-step"><strong>BD:</strong> <code>tbl_tipo</code> (roles) y <code>tbl_usuario</code>; SP <code>sp_login_usuario</code> (valida login/clave y devuelve el usuario con su rol).</li>
-    <li class="summary-step"><strong>API:</strong> endpoint <code>POST api/Usuario/login</code> (o <code>api/Auth</code>) que devuelve el usuario autenticado o 401.</li>
-    <li class="summary-step"><strong>Cliente:</strong> <code>LoginController</code> con vista <code>login.html</code>-estilo, sesi&oacute;n con <code>ISession</code>/<code>Cookie</code>, y redirecci&oacute;n si no hay sesi&oacute;n (Filtro/Atributo simple). Mostrar el nombre del usuario logueado en el <code>_Layout</code>.</li>
+    <li class="summary-step"><strong>Hecho:</strong> tablas <code>tbl_tipo_usuario</code> (roles ADMIN/USER) y <code>tbl_usuario</code>, SP <code>sp_login_usuario</code> (valida usuario/clave con hash SHA256 y devuelve el usuario con su rol), endpoint <code>POST api/Usuario/login</code> y login con <strong>Cookie de ASP.NET Core</strong> + <code>[Authorize]</code>/<code>[Authorize(Roles="ADMIN")]</code> en el cliente. Ver <a href="#login">secci&oacute;n 13</a>.</li>
   </ol>
 
   <h3>Avance 4 &mdash; Dashboard y Reportes</h3>
@@ -2083,9 +2082,7 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
 
   <div class="info-box"><strong>Orden de prioridad para las siguientes semanas (solo lo pendiente):</strong>
     <ol>
-      <li><strong>Recepcionar</strong> la Orden de Compra (cierra el n&uacute;cleo del negocio: actualizar <code>stock_actual</code> y cambiar estado).</li>
-      <li><strong>Usuarios/Login</strong>.</li>
-      <li><strong>Dashboard y Reportes</strong>.</li>
+      <li><strong>Dashboard y Reportes</strong> (avance 4).</li>
     </ol>
   </div>
 
@@ -2181,6 +2178,112 @@ ViewBag.UltimasOrdenes = ordenes.OrderByDescending(o =&gt; o.Fecha).Take(5).ToLi
   <p>Cada llamada va en su propio <code>try/catch</code>: si la API no est&aacute; corriendo, la portada igual carga mostrando <strong>0</strong> en las tarjetas y la tabla vac&iacute;a (y se loguea el error con <code>ILogger</code>). La vista muestra un t&iacute;tulo <strong>SERFAGAB</strong> grande, 6 tarjetas de estad&iacute;sticas (Bootstrap puro con <code>border-top</code> de color) y una tabla con las <strong>5 &uacute;ltimas &oacute;rdenes</strong> reutilizando los badges de estado y el formato <code>S/</code> de la secci&oacute;n 12.</p>
 
   <div class="warn-box"><strong>Nota sobre el CDN:</strong> DataTables se carga desde internet. Si el sal&oacute;n de clases no tiene internet, descargar <code>jquery.dataTables.min.js</code>, <code>dataTables.bootstrap5.min.js</code> y el CSS a <code>wwwroot/lib/datatables/</code> y cambiar los <code>src</code>/<code>href</code> por rutas locales (<code>~/lib/datatables/...</code>).</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-card" id="login">
+  <h2>13. Login con roles ADMIN y USER <span class="badge">IMPLEMENTADO</span></h2>
+  <p>Siguiendo el avance 3 del plan, se agreg&oacute; autenticaci&oacute;n con <strong>dos roles</strong>: <code>ADMIN</code> (puede crear, editar y eliminar) y <code>USER</code> (solo ver listas/detalles y <strong>crear/recepcionar</strong>; <strong>no puede editar ni eliminar</strong>). Mecanismo elegido: la <strong>API valida las credenciales</strong> contra la BD y el cliente inicia una <strong>sesi&oacute;n con Cookie de ASP.NET Core</strong> (sin JWT, m&aacute;s simple).</p>
+
+  <h3>13.1. BD: tablas de roles y usuarios + SP de login</h3>
+  <pre>CREATE TABLE tbl_tipo_usuario
+(
+    id_tipo_usuario INT IDENTITY PRIMARY KEY,
+    nombre NVARCHAR(50) NOT NULL,
+    descripcion NVARCHAR(255)
+);
+GO
+
+CREATE TABLE tbl_usuario
+(
+    id_usuario INT IDENTITY PRIMARY KEY,
+    id_tipo_usuario INT references tbl_tipo_usuario(id_tipo_usuario),
+    usuario NVARCHAR(50) NOT NULL UNIQUE,
+    clave NVARCHAR(64) NOT NULL,
+    nombre_completo NVARCHAR(150) NOT NULL,
+    email NVARCHAR(100),
+    activo BIT DEFAULT 1
+);
+GO</pre>
+  <p>La clave se guarda como <strong>hash SHA256 en hexadecimal</strong> (nunca en texto plano). El SP valida el hash y devuelve el usuario con su rol:</p>
+  <pre>create or alter procedure sp_login_usuario
+@usuario NVARCHAR(50),
+@clave NVARCHAR(64),
+@resultado INT OUTPUT
+as
+begin
+    declare @hash nvarchar(64) = lower(convert(nvarchar(64), hashbytes('SHA2_256', convert(varchar(64), @clave)), 2));
+
+    if not exists(select 1 from tbl_usuario u
+                  join tbl_tipo_usuario t on u.id_tipo_usuario = t.id_tipo_usuario
+                  where u.usuario = @usuario and u.clave = @hash and u.activo = 1)
+    begin
+        set @resultado = 0
+        return
+    end
+
+    set @resultado = 1
+
+    select u.id_usuario, u.usuario, u.nombre_completo, u.email, t.nombre as rol, u.activo
+    from tbl_usuario u
+    join tbl_tipo_usuario t on u.id_tipo_usuario = t.id_tipo_usuario
+    where u.usuario = @usuario and u.clave = @hash and u.activo = 1
+end</pre>
+  <div class="warn-box"><strong>&iexcl;Gotcha importante con HASHBYTES!</strong> Si se hashea el par&aacute;metro <code>@clave</code> directamente (que llega como <code>NVARCHAR</code>), SQL Server hashea los bytes en <strong>UTF-16</strong> y el hash resultante <strong>no</strong> coincide con el de los usuarios semilla (generados sobre los bytes ASCII de la clave, por ejemplo <code>240BE5...</code> para <code>admin123</code>). La soluci&oacute;n es convertir antes a <code>varchar</code>: <code>hashbytes('SHA2_256', convert(varchar(64), @clave))</code>. Este fue el error real que provoc&oacute; "Usuario o clave incorrectos".</div>
+  <p>Usuarios de prueba (el script ya los inserta con el hash precomputado):</p>
+  <ul>
+    <li><code>admin / admin123</code> &rarr; rol <strong>ADMIN</strong>.</li>
+    <li><code>user / user123</code> &rarr; rol <strong>USER</strong>.</li>
+  </ul>
+
+  <h3>13.2. API: endpoint de login</h3>
+  <p>Modelos nuevos: <code>Usuario</code> (IdUsuario, NombreUsuario, NombreCompleto, Email, Rol, Activo), <code>TipoUsuario</code> y <code>LoginVM</code>. El <code>LoginVM</code> usa <strong>strings nullable</strong> para no caer en el 400 por validaci&oacute;n impl&iacute;cita de <code>[ApiController]</code>. El service <code>UsuarioService</code> usa ADO.NET + <code>sp_login_usuario</code> con el patr&oacute;n de excepciones (<code>ILogger</code> + <code>try/catch</code>) de la secci&oacute;n 9:</p>
+  <pre>[HttpPost("login")]
+public IActionResult Login([FromBody] LoginVM vm)
+{
+    if (string.IsNullOrEmpty(vm.Usuario) || string.IsNullOrEmpty(vm.Clave))
+        return BadRequest(...);
+
+    var user = _service.login(vm.Usuario, vm.Clave);
+    if (user == null)
+        return Unauthorized(new ApiResponse&lt;object&gt; { message = "Usuario o clave incorrectos", success = false, data = "" });
+
+    return Ok(new ApiResponse&lt;Usuario&gt; { message = "Bienvenido " + user.NombreCompleto + "!", success = true, data = user });
+}</pre>
+
+  <h3>13.3. Cliente: Cookie de sesi&oacute;n y roles</h3>
+  <p>En <code>Program.cs</code> del cliente se activa la autenticaci&oacute;n con cookie y se agrega <code>app.UseAuthentication()</code>:</p>
+  <pre>builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =&gt;
+    {
+        options.LoginPath = "/Login/Index";
+        options.AccessDeniedPath = "/Login/Index";
+    });
+...
+app.UseAuthentication();
+app.UseAuthorization();</pre>
+  <p><code>LoginController</code> valida contra <code>api/Usuario/login</code> y, si es v&aacute;lido, firma la cookie con claims (Name = usuario, Role = rol):</p>
+  <pre>var claims = new List&lt;Claim&gt;
+{
+    new Claim(ClaimTypes.Name, user.NombreUsuario),
+    new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()),
+    new Claim(ClaimTypes.GivenName, user.NombreCompleto),
+    new Claim(ClaimTypes.Role, user.Rol)
+};
+var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));</pre>
+  <p>La vista <code>Views/Login/Index.cshtml</code> es una tarjeta centrada con usuario/clave y alert de error reutilizando el patr&oacute;n <code>TempData["tipo"]</code>.</p>
+
+  <h3>13.4. Protecci&oacute;n por rol</h3>
+  <ul>
+    <li><code>[Authorize]</code> en <code>HomeController</code> y en los 4 controllers CRUD &rarr; sin sesi&oacute;n se redirige a <code>/Login/Index</code>.</li>
+    <li><code>[Authorize(Roles = "ADMIN")]</code> en las acciones <strong>Edit y Delete</strong> (GET y POST) de los 4 controllers &rarr; un USER que intente acceder es redirigido (denegado).</li>
+    <li>Create y Recepcionar quedan abiertos para ambos roles.</li>
+    <li>En las vistas Index los botones <strong>Edit/Delete</strong> se ocultan para no-ADMIN con <code>@if (User.IsInRole("ADMIN"))</code>.</li>
+    <li>El <code>_Layout</code> muestra <em>Hola, usuario (rol)</em> y un bot&oacute;n <strong>Cerrar sesi&oacute;n</strong> (POST a <code>Login/Logout</code> con <code>SignOutAsync</code>).</li>
+  </ul>
+
+  <div class="warn-box"><strong>Para probarlo:</strong> ejecutar el bloque LOGIN del script en SSMS (crea tablas, inserta usuarios y crea el SP), luego arrancar API y cliente. Entrar con <code>admin/admin123</code> (ver&aacute; botones Edit/Delete) y con <code>user/user123</code> (no los ver&aacute;, y acceder a una URL de Edit/Delete redirige).</div>
 </div>
 
 </div>

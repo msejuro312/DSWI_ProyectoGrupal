@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -6,6 +7,7 @@ using ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models;
 
 namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 {
+    [Authorize]
     public class OrdenCompraController : Controller
     {
         private readonly HttpClient _httpClient;
@@ -122,6 +124,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(int IdOrdenCompra)
         {
             var orden = await getOrden(IdOrdenCompra);
@@ -135,6 +138,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteConfirmed(int IdOrdenCompra)
         {
             var apiResponse = await eliminar(IdOrdenCompra);

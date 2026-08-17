@@ -56,7 +56,10 @@
                             <button type="submit" class="btn btn-sm btn-success">Recepcionar</button>
                         </form>
                     }
-                    @Html.ActionLink("Delete", "Delete", new { IdOrdenCompra = item.IdOrdenCompra }, new { @class = "btn btn-sm btn-danger" })
+                    @if (User.IsInRole("ADMIN"))
+                    {
+                        @Html.ActionLink("Delete", "Delete", new { IdOrdenCompra = item.IdOrdenCompra }, new { @class = "btn btn-sm btn-danger" })
+                    }
                 </td>
             </tr>
         }

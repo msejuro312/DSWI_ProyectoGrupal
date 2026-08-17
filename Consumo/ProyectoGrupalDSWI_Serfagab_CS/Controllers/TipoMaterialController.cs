@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -5,6 +6,7 @@ using ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models;
 
 namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 {
+    [Authorize]
     public class TipoMaterialController : Controller
     {
         private readonly HttpClient _httpClient;
@@ -79,6 +81,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Edit(int IdTipoMaterial)
         {
             var tipo = await getTipo(IdTipoMaterial);
@@ -92,6 +95,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Edit(TipoMaterial tipoMaterial)
         {
             var apiResponse = await actualizar(tipoMaterial);
@@ -101,6 +105,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(int IdTipoMaterial)
         {
             var tipo = await getTipo(IdTipoMaterial);
@@ -114,6 +119,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteConfirmed(int IdTipoMaterial)
         {
             var apiResponse = await eliminar(IdTipoMaterial);

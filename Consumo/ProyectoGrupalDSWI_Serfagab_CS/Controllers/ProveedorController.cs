@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -5,6 +6,7 @@ using ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models;
 
 namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 {
+    [Authorize]
     public class ProveedorController : Controller
     {
         private readonly HttpClient _httpClient;
@@ -79,6 +81,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Edit(int IdProveedor)
         {
             var proveedor = await getProveedor(IdProveedor);
@@ -92,6 +95,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Edit(Proveedor proveedor)
         {
             var apiResponse = await actualizar(proveedor);
@@ -101,6 +105,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(int IdProveedor)
         {
             var proveedor = await getProveedor(IdProveedor);
@@ -114,6 +119,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteConfirmed(int IdProveedor)
         {
             var apiResponse = await eliminar(IdProveedor);

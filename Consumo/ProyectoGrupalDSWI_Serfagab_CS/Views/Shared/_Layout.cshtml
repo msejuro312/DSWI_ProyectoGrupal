@@ -39,6 +39,21 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <ul class="navbar-nav align-items-center">
+                            <li class="nav-item me-2">
+                                <span class="navbar-text">
+                                    Hola, @User.Identity.Name (<span class="badge @(User.IsInRole("ADMIN") ? "bg-danger" : "bg-secondary")">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>)
+                                </span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Login" asp-action="Logout" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>
