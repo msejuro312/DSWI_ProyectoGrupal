@@ -1,67 +1,68 @@
 @model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Proveedor>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Proveedores";
+    int i = 0;
 }
 
 <h1>Proveedores</h1>
-<p>
-    @TempData["message"]
-</p>
+
+@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+{
+    <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
+        @TempData["message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
-<table class="table">
+<table class="table table-striped" id="tablaProveedor">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.IdProveedor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RazonSocial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Ruc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Celular)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Descripcion)
-            </th>
-            <th></th>
+            <th>#</th>
+            <th>@Html.DisplayNameFor(model => model.RazonSocial)</th>
+            <th>@Html.DisplayNameFor(model => model.Ruc)</th>
+            <th>@Html.DisplayNameFor(model => model.Celular)</th>
+            <th>@Html.DisplayNameFor(model => model.Email)</th>
+            <th>@Html.DisplayNameFor(model => model.Descripcion)</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdProveedor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RazonSocial)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Ruc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Celular)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Descripcion)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { IdProveedor = item.IdProveedor }) |
-                @Html.ActionLink("Delete", "Delete", new { IdProveedor = item.IdProveedor })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(++i)</td>
+                <td>@Html.DisplayFor(modelItem => item.RazonSocial)</td>
+                <td>@Html.DisplayFor(modelItem => item.Ruc)</td>
+                <td>@Html.DisplayFor(modelItem => item.Celular)</td>
+                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                <td>@Html.DisplayFor(modelItem => item.Descripcion)</td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { IdProveedor = item.IdProveedor }, new { @class = "btn btn-sm btn-warning" })
+                    @Html.ActionLink("Delete", "Delete", new { IdProveedor = item.IdProveedor }, new { @class = "btn btn-sm btn-danger" })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaProveedor').DataTable({
+                pageLength: 10,
+                order: [[1, 'asc']],
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    zeroRecords: "No hay registros",
+                    paginate: { first: "Primero", last: "Último", next: "Siguiente", previous: "Anterior" }
+                }
+            });
+        });
+    </script>
+}

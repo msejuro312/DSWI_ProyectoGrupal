@@ -43,7 +43,7 @@
         </dd>
     </dl>
 
-    <form asp-action="Delete">
+    <form asp-action="Delete" onsubmit="return confirm('¿Está seguro de eliminar esta orden de compra?');">
         <input type="hidden" asp-for="IdOrdenCompra" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         <a asp-action="Index">Back to List</a>

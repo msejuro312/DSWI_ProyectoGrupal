@@ -1,49 +1,62 @@
 @model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.TipoMaterial>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Tipos de Material";
+    int i = 0;
 }
 
 <h1>Tipos de Material</h1>
-<p>
-    @TempData["message"]
-</p>
+
+@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+{
+    <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
+        @TempData["message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
-<table class="table">
+<table class="table table-striped" id="tablaTipo">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.IdTipoMaterial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Nombre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Descripcion)
-            </th>
-            <th></th>
+            <th>#</th>
+            <th>@Html.DisplayNameFor(model => model.Nombre)</th>
+            <th>@Html.DisplayNameFor(model => model.Descripcion)</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdTipoMaterial)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nombre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Descripcion)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { IdTipoMaterial = item.IdTipoMaterial }) |
-                @Html.ActionLink("Delete", "Delete", new { IdTipoMaterial = item.IdTipoMaterial })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(++i)</td>
+                <td>@Html.DisplayFor(modelItem => item.Nombre)</td>
+                <td>@Html.DisplayFor(modelItem => item.Descripcion)</td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { IdTipoMaterial = item.IdTipoMaterial }, new { @class = "btn btn-sm btn-warning" })
+                    @Html.ActionLink("Delete", "Delete", new { IdTipoMaterial = item.IdTipoMaterial }, new { @class = "btn btn-sm btn-danger" })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaTipo').DataTable({
+                pageLength: 10,
+                order: [[1, 'asc']],
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    zeroRecords: "No hay registros",
+                    paginate: { first: "Primero", last: "Último", next: "Siguiente", previous: "Anterior" }
+                }
+            });
+        });
+    </script>
+}

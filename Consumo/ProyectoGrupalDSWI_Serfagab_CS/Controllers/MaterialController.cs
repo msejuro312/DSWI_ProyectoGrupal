@@ -41,35 +41,29 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             return await Task.Run(() => apiResponse.data ?? new List<TipoMaterial>());
         }
 
-        async Task<string> insertar(Material material)
+        async Task<ApiResponse<object>> insertar(Material material)
         {
             var json = JsonConvert.SerializeObject(material);
             var body = new StringContent(json, Encoding.UTF8, "application/json");
             var request = await _httpClient.PostAsync("api/Material", body);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            var message = apiResponse.message;
-            return await Task.Run(() => message);
+            return await Task.Run(() => JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>());
         }
 
-        async Task<string> actualizar(Material material)
+        async Task<ApiResponse<object>> actualizar(Material material)
         {
             var json = JsonConvert.SerializeObject(material);
             var body = new StringContent(json, Encoding.UTF8, "application/json");
             var request = await _httpClient.PutAsync("api/Material", body);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            var message = apiResponse.message;
-            return await Task.Run(() => message);
+            return await Task.Run(() => JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>());
         }
 
-        async Task<string> eliminar(int IdMaterial)
+        async Task<ApiResponse<object>> eliminar(int IdMaterial)
         {
             var request = await _httpClient.DeleteAsync("api/Material/" + IdMaterial);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            var message = apiResponse.message;
-            return await Task.Run(() => message);
+            return await Task.Run(() => JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>());
         }
 
         [HttpGet]
@@ -93,8 +87,9 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 
         public async Task<IActionResult> Create(Material material)
         {
-            var message = await insertar(material);
-            TempData["message"] = message;
+            var apiResponse = await insertar(material);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
 
@@ -106,6 +101,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (material == null)
             {
                 TempData["message"] = "El material a editar no existe!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Index");
             }
             else
@@ -120,8 +116,9 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 
         public async Task<IActionResult> Edit(Material material)
         {
-            var message = await actualizar(material);
-            TempData["message"] = message;
+            var apiResponse = await actualizar(material);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
 
@@ -133,6 +130,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (material == null)
             {
                 TempData["message"] = "El material a eliminar no existe!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Index");
             }
             return View(material);
@@ -142,8 +140,9 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
 
         public async Task<IActionResult> DeleteConfirmed(int IdMaterial)
         {
-            var message = await eliminar(IdMaterial);
-            TempData["message"] = message;
+            var apiResponse = await eliminar(IdMaterial);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
     }

@@ -129,6 +129,7 @@
     <li><a href="#avances-impl">AVANCES IMPLEMENTADOS: Proveedor, Orden de Compra y TipoMaterial CRUD</a></li>
     <li><a href="#excepciones">Manejo de excepciones en los Services (mejora implementada)</a></li>
     <li><a href="#api-consistencia">Consistencia de la API: listas envueltas en ApiResponse (mejora implementada)</a></li>
+    <li><a href="#visuales">Mejoras visuales: DataTables, validaci&oacute;n, badges y alerts (mejora implementada)</a></li>
     <li><a href="#avances">Pr&oacute;ximos avances del proyecto (plan detallado)</a></li>
   </ol>
 </div>
@@ -2089,6 +2090,85 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
   </div>
 
   <div class="warn-box"><strong>Recordatorio transversal:</strong> cada nuevo m&oacute;dulo que toque una tabla con columnas NULLABLE debe repetir el patr&oacute;n de <code>IsDBNull</code> y <code>?? DBNull.Value</code> de la secci&oacute;n <a href="#api-paso5">4.5</a>. Y cada nueva tabla necesita <strong>al menos</strong> el mismo n&uacute;mero de SPs que el CRUD que exponga.</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-card" id="visuales">
+  <h2>12. Mejoras visuales: DataTables, validaci&oacute;n, badges y alerts <span class="badge">IMPLEMENTADO</span></h2>
+  <p>Siguiendo el archivo <code>Visuales.txt</code> se mejor&oacute; la presentaci&oacute;n del cliente MVC <strong>sin tocar la API ni la BD</strong>: todo es HTML/CSS/JS + data annotations en los modelos del cliente.</p>
+
+  <h3>12.1. Requisitos del archivo Visuales.txt</h3>
+  <ol>
+    <li>Ocultar el Id en las 4 listas (TipoMaterial, Material, Proveedor, OrdenCompra) y mostrar una <strong>lista numerada ascendente</strong> (#).</li>
+    <li>Ordenar por columna con <strong>flechitas asc/desc</strong> (incluida la fecha en &oacute;rdenes).</li>
+    <li>Cajita de <strong>b&uacute;squeda</strong>.</li>
+    <li>RUC de 11 d&iacute;gitos con <strong>rojo/verde en vivo</strong>.</li>
+    <li>Montos con <strong>S/</strong> y solo <strong>n&uacute;meros positivos</strong>.</li>
+    <li>Email con formato.</li>
+    <li>Paginaci&oacute;n de <strong>10 en 10</strong>.</li>
+    <li>Mejoras visuales de mensajes y botones.</li>
+  </ol>
+
+  <h3>12.2. DataTables por CDN (ordenar, buscar, paginar)</h3>
+  <p>Se agreg&oacute; <strong>DataTables 1.13.8 con integraci&oacute;n Bootstrap 5</strong> v&iacute;a CDN en <code>Views/Shared/_Layout.cshtml</code>:</p>
+  <pre>&lt;link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" /&gt;
+...
+&lt;script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"&gt;&lt;/script&gt;</pre>
+  <p>Cada Index activa la tabla en su <code>@section Scripts</code> con <code>pageLength: 10</code>, orden por defecto (<code>order: [[1,'asc']]</code>, y <code>[[2,'desc']]</code> por fecha en &oacute;rdenes) y el <code>language</code> en espa&ntilde;ol. En <strong>Material</strong> la b&uacute;squeda se restringe a la columna <strong>Nombre</strong> y en <strong>OrdenCompra</strong> a <strong>Proveedor</strong>:</p>
+  <pre>$('#tablaMaterial_filter input').on('keyup', function () {
+    tablaMaterial.column(1).search(this.value).draw();
+});</pre>
+
+  <h3>12.3. Validaci&oacute;n client-side (data annotations + verde/rojo)</h3>
+  <p>Se agregaron data annotations a los modelos <strong>del cliente</strong> (Material, TipoMaterial, Proveedor):</p>
+  <pre>[Required(ErrorMessage = "El nombre es obligatorio")]
+[RegularExpression("^[0-9]{11}$", ErrorMessage = "El RUC debe tener 11 d&iacute;gitos")]
+[EmailAddress(ErrorMessage = "Formato de email no v&aacute;lido")]
+[Range(0, 999999999, ErrorMessage = "El precio referencial debe ser un n&uacute;mero positivo")]</pre>
+  <p>Y en <code>wwwroot/js/site.js</code> un snippet delegado que marca <strong>verde/rojo en vivo</strong> (clases Bootstrap <code>is-valid</code>/<code>is-invalid</code>) usando <code>.valid()</code> de jQuery Validation:</p>
+  <pre>$(document).on('input change', 'input, select, textarea', function () {
+    var $el = $(this);
+    if ($el.is('[readonly], [disabled], [type=hidden], [type=submit], [type=button]')) return;
+    var valor = $el.val();
+    if (valor === undefined || valor === null || valor === '') {
+        $el.removeClass('is-valid is-invalid'); return;
+    }
+    var valido; try { valido = $el.valid(); } catch (e) { return; }
+    $el.toggleClass('is-valid', valido);
+    $el.toggleClass('is-invalid', !valido);
+});</pre>
+
+  <h3>12.4. Dinero, fechas y badges</h3>
+  <ul>
+    <li>Montos con <strong>S/</strong> y 2 decimales: <code>S/ @item.Total.ToString("N2")</code> (tambi&eacute;n en PrecioUnitario y Subtotal de Details).</li>
+    <li>Inputs num&eacute;ricos solo positivos: <code>&lt;input type="number" min="0" step="0.01" /&gt;</code>.</li>
+    <li>La fecha se guarda en la celda en formato ISO (<code>yyyy-MM-dd</code>) para que DataTables ordene bien, y se muestra como dd/MM/yyyy con un <code>columnDefs.render</code>.</li>
+    <li>Badge de estado en OrdenCompra: PENDIENTE=warning, APROBADA=info, RECIBIDA=success, ANULADA=secondary.</li>
+  </ul>
+
+  <h3>12.5. Alerts de mensaje con color seg&uacute;n &eacute;xito</h3>
+  <p>Los helpers de los controllers devuelven ahora el <code>ApiResponse&lt;object&gt;</code> completo y se guarda <code>TempData["tipo"]</code> (<code>success</code>, <code>danger</code> o <code>warning</code>):</p>
+  <pre>var apiResponse = await insertar(material);
+TempData["message"] = apiResponse.message;
+TempData["tipo"] = apiResponse.success ? "success" : "danger";</pre>
+  <p>La vista Index muestra el alert con cierre (X) usando la clase de color:</p>
+  <pre>@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+{
+    &lt;div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert"&gt;
+        @TempData["message"]
+        &lt;button type="button" class="btn-close" data-bs-dismiss="alert"&gt;&lt;/button&gt;
+    &lt;/div&gt;
+}</pre>
+
+  <h3>12.6. Botones y confirmaci&oacute;n</h3>
+  <ul>
+    <li>Botones con clases Bootstrap: <code>btn btn-sm btn-warning</code> (Edit), <code>btn btn-danger</code> (Delete), <code>btn btn-info text-white</code> (Details), <code>btn btn-success</code> (Recepcionar).</li>
+    <li>Confirmaci&oacute;n antes de borrar: <code>&lt;form asp-action="Delete" onsubmit="return confirm('&iquest;Est&aacute; seguro de eliminar este material?');"&gt;</code>.</li>
+    <li>Tablas con <code>table-striped</code> y fila "No hay registros" manejada por DataTables (<code>zeroRecords</code> en espa&ntilde;ol).</li>
+  </ul>
+
+  <div class="warn-box"><strong>Nota sobre el CDN:</strong> DataTables se carga desde internet. Si el sal&oacute;n de clases no tiene internet, descargar <code>jquery.dataTables.min.js</code>, <code>dataTables.bootstrap5.min.js</code> y el CSS a <code>wwwroot/lib/datatables/</code> y cambiar los <code>src</code>/<code>href</code> por rutas locales (<code>~/lib/datatables/...</code>).</div>
 </div>
 
 </div>

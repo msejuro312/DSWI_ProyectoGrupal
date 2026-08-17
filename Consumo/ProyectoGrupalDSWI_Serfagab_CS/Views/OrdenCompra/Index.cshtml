@@ -1,75 +1,93 @@
 @model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Órdenes de Compra";
+    int i = 0;
 }
 
 <h1>Órdenes de Compra</h1>
-<p>
-    @TempData["message"]
-</p>
+
+@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+{
+    <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
+        @TempData["message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
-<table class="table">
+<table class="table table-striped" id="tablaOrden">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.IdOrdenCompra)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Proveedor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Fecha)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Estado)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Total)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Observaciones)
-            </th>
-            <th></th>
+            <th>#</th>
+            <th>@Html.DisplayNameFor(model => model.Proveedor)</th>
+            <th>@Html.DisplayNameFor(model => model.Fecha)</th>
+            <th>@Html.DisplayNameFor(model => model.Estado)</th>
+            <th>@Html.DisplayNameFor(model => model.Total)</th>
+            <th>@Html.DisplayNameFor(model => model.Observaciones)</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdOrdenCompra)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Proveedor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Fecha)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Estado)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Total)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Observaciones)
-            </td>
-            <td>
-                @Html.ActionLink("Details", "Details", new { IdOrdenCompra = item.IdOrdenCompra }) |
-                @if (item.Estado == "PENDIENTE" || item.Estado == "APROBADA")
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(++i)</td>
+                <td>@Html.DisplayFor(modelItem => item.Proveedor)</td>
+                <td>@item.Fecha.ToString("yyyy-MM-dd")</td>
+                <td><span class="badge @(item.Estado switch
                 {
-                    <form asp-action="Recepcionar" method="post" style="display:inline;">
-                        <input type="hidden" name="IdOrdenCompra" value="@item.IdOrdenCompra" />
-                        <button type="submit" class="btn btn-link" style="padding:0;">Recepcionar</button>
-                    </form>
-                    <span>|</span>
-                }
-                @Html.ActionLink("Delete", "Delete", new { IdOrdenCompra = item.IdOrdenCompra })
-            </td>
-        </tr>
-}
+                    "PENDIENTE" => "bg-warning text-dark",
+                    "APROBADA" => "bg-info text-dark",
+                    "RECIBIDA" => "bg-success",
+                    "ANULADA" => "bg-secondary",
+                    _ => "bg-secondary"
+                })">@item.Estado</span></td>
+                <td>S/ @item.Total.ToString("N2")</td>
+                <td>@Html.DisplayFor(modelItem => item.Observaciones)</td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { IdOrdenCompra = item.IdOrdenCompra }, new { @class = "btn btn-sm btn-info text-white" })
+                    @if (item.Estado == "PENDIENTE" || item.Estado == "APROBADA")
+                    {
+                        <form asp-action="Recepcionar" method="post" style="display:inline;">
+                            <input type="hidden" name="IdOrdenCompra" value="@item.IdOrdenCompra" />
+                            <button type="submit" class="btn btn-sm btn-success">Recepcionar</button>
+                        </form>
+                    }
+                    @Html.ActionLink("Delete", "Delete", new { IdOrdenCompra = item.IdOrdenCompra }, new { @class = "btn btn-sm btn-danger" })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var tablaOrden = $('#tablaOrden').DataTable({
+                pageLength: 10,
+                order: [[2, 'desc']],
+                columnDefs: [{
+                    targets: 2,
+                    render: function (data) {
+                        if (!data) return '';
+                        var d = new Date(data);
+                        return d.toLocaleDateString('es-PE');
+                    }
+                }],
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    zeroRecords: "No hay registros",
+                    paginate: { first: "Primero", last: "Último", next: "Siguiente", previous: "Anterior" }
+                }
+            });
+            $('#tablaOrden_filter input').on('keyup', function () {
+                tablaOrden.column(1).search(this.value).draw();
+            });
+        });
+    </script>
+}

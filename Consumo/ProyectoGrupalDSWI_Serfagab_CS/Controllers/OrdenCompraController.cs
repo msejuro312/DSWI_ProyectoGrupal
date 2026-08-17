@@ -49,30 +49,27 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             return apiResponse.data ?? new List<Material>();
         }
 
-        async Task<string> insertar(OrdenCompraVM vm)
+        async Task<ApiResponse<object>> insertar(OrdenCompraVM vm)
         {
             var json = JsonConvert.SerializeObject(vm);
             var body = new StringContent(json, Encoding.UTF8, "application/json");
             var request = await _httpClient.PostAsync("api/OrdenCompra", body);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            return apiResponse.message;
+            return JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
         }
 
-        async Task<string> eliminar(int IdOrdenCompra)
+        async Task<ApiResponse<object>> eliminar(int IdOrdenCompra)
         {
             var request = await _httpClient.DeleteAsync("api/OrdenCompra/" + IdOrdenCompra);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            return apiResponse.message;
+            return JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
         }
 
-        async Task<string> recepcionar(int IdOrdenCompra)
+        async Task<ApiResponse<object>> recepcionar(int IdOrdenCompra)
         {
             var request = await _httpClient.PostAsync("api/OrdenCompra/" + IdOrdenCompra + "/recepcionar", null);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            return apiResponse.message;
+            return JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
         }
 
         public async Task<IActionResult> Index()
@@ -97,15 +94,18 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (vm.IdProveedor <= 0)
             {
                 TempData["message"] = "Debe seleccionar un proveedor!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Create");
             }
             if (vm.Detalles == null || vm.Detalles.Count == 0)
             {
                 TempData["message"] = "Debe agregar al menos un material al detalle!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Create");
             }
-            var message = await insertar(vm);
-            TempData["message"] = message;
+            var apiResponse = await insertar(vm);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
 
@@ -115,6 +115,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (orden == null)
             {
                 TempData["message"] = "La orden de compra no existe!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Index");
             }
             return View(orden);
@@ -127,6 +128,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (orden == null)
             {
                 TempData["message"] = "La orden de compra a eliminar no existe!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Index");
             }
             return View(orden);
@@ -135,16 +137,18 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int IdOrdenCompra)
         {
-            var message = await eliminar(IdOrdenCompra);
-            TempData["message"] = message;
+            var apiResponse = await eliminar(IdOrdenCompra);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
 
         [HttpPost]
         public async Task<IActionResult> Recepcionar(int IdOrdenCompra)
         {
-            var message = await recepcionar(IdOrdenCompra);
-            TempData["message"] = message;
+            var apiResponse = await recepcionar(IdOrdenCompra);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
     }

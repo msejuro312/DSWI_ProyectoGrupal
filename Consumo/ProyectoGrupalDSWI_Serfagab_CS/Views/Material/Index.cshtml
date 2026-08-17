@@ -1,79 +1,73 @@
 @model IEnumerable<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Material>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Materiales";
+    int i = 0;
 }
 
-<h1>Index</h1>
-<p>
-    @TempData["message"]
-</p>
+<h1>Materiales</h1>
+
+@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+{
+    <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
+        @TempData["message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
-<table class="table">
+<table class="table table-striped" id="tablaMaterial">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.IdMaterial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IdTipoMaterial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Nombre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnidadMedida)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StockActual)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PrecioReferencial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Descripcion)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TipoMaterial)
-            </th>
-            <th></th>
+            <th>#</th>
+            <th>@Html.DisplayNameFor(model => model.Nombre)</th>
+            <th>@Html.DisplayNameFor(model => model.UnidadMedida)</th>
+            <th>@Html.DisplayNameFor(model => model.StockActual)</th>
+            <th>@Html.DisplayNameFor(model => model.PrecioReferencial)</th>
+            <th>@Html.DisplayNameFor(model => model.Descripcion)</th>
+            <th>@Html.DisplayNameFor(model => model.TipoMaterial)</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdMaterial)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdTipoMaterial)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nombre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnidadMedida)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StockActual)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PrecioReferencial)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Descripcion)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TipoMaterial)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { IdMaterial = item.IdMaterial }) |
-                @Html.ActionLink("Delete", "Delete", new { IdMaterial = item.IdMaterial })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(++i)</td>
+                <td>@Html.DisplayFor(modelItem => item.Nombre)</td>
+                <td>@Html.DisplayFor(modelItem => item.UnidadMedida)</td>
+                <td>@Html.DisplayFor(modelItem => item.StockActual)</td>
+                <td>S/ @item.PrecioReferencial.ToString("N2")</td>
+                <td>@Html.DisplayFor(modelItem => item.Descripcion)</td>
+                <td>@Html.DisplayFor(modelItem => item.TipoMaterial)</td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { IdMaterial = item.IdMaterial }, new { @class = "btn btn-sm btn-warning" })
+                    @Html.ActionLink("Delete", "Delete", new { IdMaterial = item.IdMaterial }, new { @class = "btn btn-sm btn-danger" })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var tablaMaterial = $('#tablaMaterial').DataTable({
+                pageLength: 10,
+                order: [[1, 'asc']],
+                language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    zeroRecords: "No hay registros",
+                    paginate: { first: "Primero", last: "Último", next: "Siguiente", previous: "Anterior" }
+                }
+            });
+            $('#tablaMaterial_filter input').on('keyup', function () {
+                tablaMaterial.column(1).search(this.value).draw();
+            });
+        });
+    </script>
+}

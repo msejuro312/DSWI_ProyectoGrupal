@@ -8,7 +8,13 @@
 
 <h1>Nueva Orden de Compra</h1>
 <hr />
-<p>@TempData["message"]</p>
+@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+{
+    <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
+        @TempData["message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 <form asp-action="Create" method="post">
     <div class="row">
         <div class="col-md-4">

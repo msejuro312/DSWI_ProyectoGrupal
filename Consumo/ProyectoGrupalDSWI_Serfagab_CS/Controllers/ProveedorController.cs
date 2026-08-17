@@ -32,32 +32,29 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             return apiResponse.data;
         }
 
-        async Task<string> insertar(Proveedor proveedor)
+        async Task<ApiResponse<object>> insertar(Proveedor proveedor)
         {
             var json = JsonConvert.SerializeObject(proveedor);
             var body = new StringContent(json, Encoding.UTF8, "application/json");
             var request = await _httpClient.PostAsync("api/Proveedor", body);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            return apiResponse.message;
+            return JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
         }
 
-        async Task<string> actualizar(Proveedor proveedor)
+        async Task<ApiResponse<object>> actualizar(Proveedor proveedor)
         {
             var json = JsonConvert.SerializeObject(proveedor);
             var body = new StringContent(json, Encoding.UTF8, "application/json");
             var request = await _httpClient.PutAsync("api/Proveedor", body);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            return apiResponse.message;
+            return JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
         }
 
-        async Task<string> eliminar(int IdProveedor)
+        async Task<ApiResponse<object>> eliminar(int IdProveedor)
         {
             var request = await _httpClient.DeleteAsync("api/Proveedor/" + IdProveedor);
             var response = await request.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
-            return apiResponse.message;
+            return JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
         }
 
         public async Task<IActionResult> Index()
@@ -75,8 +72,9 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Proveedor proveedor)
         {
-            var message = await insertar(proveedor);
-            TempData["message"] = message;
+            var apiResponse = await insertar(proveedor);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
 
@@ -87,6 +85,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (proveedor == null)
             {
                 TempData["message"] = "El proveedor a editar no existe!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Index");
             }
             return View(proveedor);
@@ -95,8 +94,9 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(Proveedor proveedor)
         {
-            var message = await actualizar(proveedor);
-            TempData["message"] = message;
+            var apiResponse = await actualizar(proveedor);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
 
@@ -107,6 +107,7 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             if (proveedor == null)
             {
                 TempData["message"] = "El proveedor a eliminar no existe!";
+                TempData["tipo"] = "warning";
                 return RedirectToAction("Index");
             }
             return View(proveedor);
@@ -115,8 +116,9 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int IdProveedor)
         {
-            var message = await eliminar(IdProveedor);
-            TempData["message"] = message;
+            var apiResponse = await eliminar(IdProveedor);
+            TempData["message"] = apiResponse.message;
+            TempData["tipo"] = apiResponse.success ? "success" : "danger";
             return RedirectToAction("Index");
         }
     }

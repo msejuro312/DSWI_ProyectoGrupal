@@ -26,7 +26,17 @@
             @Html.DisplayNameFor(model => model.Estado)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Estado)
+            @{
+                var badge = Model.Estado switch
+                {
+                    "PENDIENTE" => "bg-warning text-dark",
+                    "APROBADA" => "bg-info text-dark",
+                    "RECIBIDA" => "bg-success",
+                    "ANULADA" => "bg-secondary",
+                    _ => "bg-secondary"
+                };
+            }
+            <span class="badge @badge">@Model.Estado</span>
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Observaciones)
@@ -57,10 +67,10 @@
                 @Html.DisplayFor(modelItem => item.Cantidad)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.PrecioUnitario)
+                S/ @item.PrecioUnitario.ToString("N2")
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Subtotal)
+                S/ @item.Subtotal.ToString("N2")
             </td>
         </tr>
 }
@@ -68,7 +78,7 @@
 </table>
 
 <div class="form-group">
-    <h4>Total: S/ @Html.DisplayFor(model => model.Total)</h4>
+    <h4>Total: S/ @Model.Total.ToString("N2")</h4>
 </div>
 
 <div>
