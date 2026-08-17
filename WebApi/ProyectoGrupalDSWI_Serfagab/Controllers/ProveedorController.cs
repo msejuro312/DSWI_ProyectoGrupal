@@ -19,7 +19,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Controllers
         public IActionResult Get()
         {
             var proveedores = _service.list();
-            return Ok(proveedores);
+            return Ok(new ApiResponse<List<Proveedor>>
+            {
+                message = "Lista de proveedores!",
+                success = true,
+                data = proveedores
+            });
         }
 
         [HttpGet("{IdProveedor}")]

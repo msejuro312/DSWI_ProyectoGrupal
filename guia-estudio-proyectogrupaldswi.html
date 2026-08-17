@@ -128,6 +128,7 @@
     <li><a href="#resumen">Resumen: orden completo de creaci&oacute;n y ejecuci&oacute;n</a></li>
     <li><a href="#avances-impl">AVANCES IMPLEMENTADOS: Proveedor, Orden de Compra y TipoMaterial CRUD</a></li>
     <li><a href="#excepciones">Manejo de excepciones en los Services (mejora implementada)</a></li>
+    <li><a href="#api-consistencia">Consistencia de la API: listas envueltas en ApiResponse (mejora implementada)</a></li>
     <li><a href="#avances">Pr&oacute;ximos avances del proyecto (plan detallado)</a></li>
   </ol>
 </div>
@@ -1905,8 +1906,69 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
 </div>
 
 <!-- ============================================================ -->
+<div class="section-card" id="api-consistencia">
+  <h2>10. Consistencia de la API: listas envueltas en ApiResponse&lt;T&gt; (mejora implementada)</h2>
+
+  <p>Al revisar la API con enfoque de profesor se detect&oacute; una <strong>inconsistencia en el contrato</strong>: todos los endpoints envolvian sus respuestas en el sobre <code>ApiResponse&lt;T&gt;</code> (<code>message</code>, <code>success</code>, <code>data</code>), pero los endpoints de <strong>lista</strong> (GET sin id) devolvian el <strong>array crudo</strong>.</p>
+
+  <div class="danger-box"><strong>&iquest;Cu&aacute;l era el problema?</strong>
+    <ul>
+      <li>El mismo recurso se serv&iacute;a con <strong>dos formatos distintos</strong>: <code>GET /api/Material</code> devolv&iacute;a <code>[ { ... }, { ... } ]</code> mientras <code>GET /api/Material/1</code> devolv&iacute;a <code>{ "message": "...", "success": true, "data": { ... } }</code>.</li>
+      <li>El cliente ten&iacute;a que recordar la forma de cada endpoint: <code>listMateriales()</code> deserializaba <code>List&lt;Material&gt;</code> directo, pero <code>getMaterial()</code> deserializaba <code>ApiResponse&lt;Material&gt;</code>. Acoplamiento fr&aacute;gil.</li>
+      <li>Si el service de la lista fallaba, no hab&iacute;a sobre para devolver un error uniforme (<code>success: false</code> + <code>message</code>).</li>
+      <li>En Swagger el contrato se ve&iacute;a inconsistente: mismo recurso, dos formas de respuesta.</li>
+    </ul>
+  </div>
+
+  <p><strong>Soluci&oacute;n implementada:</strong> envolver las listas en el sobre <code>ApiResponse&lt;List&lt;T&gt;&gt;</code> y actualizar el cliente para que lea <code>data</code>. El contrato queda <strong>uniforme en toda la API</strong> (igual que MiReplica).</p>
+
+  <h3>10.1. API: antes y despu&eacute;s (aplicado en los 4 controllers)</h3>
+
+  <span class="code-label">Antes (Controllers/MaterialController.cs, Get)</span>
+<pre><span class="ann">[HttpGet]</span>
+<span class="kwd">public</span> <span class="cls">IActionResult</span> <span class="fn">Get</span>()
+{
+    <span class="kwd">var</span> materiales = _service.<span class="fn">list</span>();
+    <span class="kwd">return</span> <span class="fn">Ok</span>(materiales);
+}</pre>
+
+  <span class="code-label">Despu&eacute;s (mismo m&eacute;todo)</span>
+<pre><span class="ann">[HttpGet]</span>
+<span class="kwd">public</span> <span class="cls">IActionResult</span> <span class="fn">Get</span>()
+{
+    <span class="kwd">var</span> materiales = _service.<span class="fn">list</span>();
+    <span class="kwd">return</span> <span class="fn">Ok</span>(<span class="kwd">new</span> <span class="cls">ApiResponse</span>&lt;<span class="cls">List</span>&lt;<span class="cls">Material</span>&gt;&gt;
+    {
+        message = <span class="str">"Lista de materiales!"</span>,
+        success = <span class="kwd">true</span>,
+        data = materiales
+    });
+}</pre>
+
+  <div class="info-box"><strong>Los 4 controllers modificados:</strong> <code>MaterialController</code> (<em>"Lista de materiales!"</em>), <code>TipoMaterialController</code> (<em>"Lista de tipos de material!"</em>), <code>ProveedorController</code> (<em>"Lista de proveedores!"</em>) y <code>OrdenCompraController</code> (<em>"Lista de ordenes de compra!"</em>). Todos con <code>ApiResponse&lt;List&lt;T&gt;&gt;</code>.</div>
+
+  <h3>10.2. Cliente MVC: leer la lista desde data</h3>
+
+  <p>El cliente ten&iacute;a <strong>7 consumos de lista</strong> que deserializaban el array crudo: <code>MaterialController</code> (<code>listMateriales</code>, <code>listTipos</code>), <code>TipoMaterialController</code> (<code>listTipos</code>), <code>ProveedorController</code> (<code>listProveedores</code>) y <code>OrdenCompraController</code> (<code>listOrdenes</code>, <code>listProveedores</code>, <code>listMateriales</code>). Todos se cambiaron a este patr&oacute;n:</p>
+
+  <span class="code-label">Despu&eacute;s (patr&oacute;n en los 7 consumos de lista)</span>
+<pre><span class="kwd">var</span> apiResponse = <span class="cls">JsonConvert</span>.<span class="fn">DeserializeObject</span>&lt;<span class="cls">ApiResponse</span>&lt;<span class="cls">List</span>&lt;<span class="cls">Material</span>&gt;&gt;&gt;(content)
+    ?? <span class="kwd">new</span> <span class="cls">ApiResponse</span>&lt;<span class="cls">List</span>&lt;<span class="cls">Material</span>&gt;&gt;();
+<span class="kwd">return</span> apiResponse.data ?? <span class="kwd">new</span> <span class="cls">List</span>&lt;<span class="cls">Material</span>&gt;();</pre>
+
+  <div class="warn-box"><strong>&iexcl;API y cliente se cambian juntos!</strong> Si solo se cambia la API y no el cliente, el cliente se rompe: ya no encuentra un array, sino un objeto con <code>data</code>. Por eso la correcci&oacute;n es coordinada en ambos proyectos.</div>
+
+  <h3>10.3. C&oacute;mo probar el cambio</h3>
+  <ol>
+    <li class="summary-step"><strong>Compilar ambos proyectos</strong> (<code>dotnet build</code>): verifica que API y cliente compilen con 0 errores.</li>
+    <li class="summary-step"><strong>En Swagger,</strong> <code>GET /api/Material</code> (y Proveedor, TipoMaterial, OrdenCompra): ahora responde <code>{ "message": "Lista de materiales!", "success": true, "data": [ ... ] }</code>.</li>
+    <li class="summary-step"><strong>En el cliente MVC:</strong> <code>http://localhost:5217/Material</code>, <code>/TipoMaterial</code>, <code>/Proveedor</code> y <code>/OrdenCompra</code> deben seguir listando normal, y los dropdowns (tipos en Create/Edit de Material, proveedores y materiales en OrdenCompra) siguen cargando.</li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
 <div class="section-card" id="avances">
-  <h2>10. Pr&oacute;ximos avances del proyecto (plan detallado)</h2>
+  <h2>11. Pr&oacute;ximos avances del proyecto (plan detallado)</h2>
 
   <p>El sistema <strong>SERFAGAB</strong> completo (seg&uacute;n el proyecto de referencia <code>PROYECTO_LP2_GRUPO_B</code> y su script <code>serfagab.sql</code>) no se queda solo en materiales: suma <strong>proveedores, &oacute;rdenes de compra con detalle, usuarios con login, dashboard y reportes</strong>. Cada avance usa <strong>exactamente la misma arquitectura</strong> que ya dominamos (tabla + SPs + Service + Controller + vista), as&iacute; que todo es incremental.</p>
 

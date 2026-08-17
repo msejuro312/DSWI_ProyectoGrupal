@@ -19,7 +19,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Controllers
         public IActionResult Get()
         {
             var ordenes = _service.list();
-            return Ok(ordenes);
+            return Ok(new ApiResponse<List<OrdenCompra>>
+            {
+                message = "Lista de ordenes de compra!",
+                success = true,
+                data = ordenes
+            });
         }
 
         [HttpGet("{IdOrdenCompra}")]

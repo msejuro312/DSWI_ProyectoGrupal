@@ -19,7 +19,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Controllers
         public IActionResult Get()
         {
             var tipos = _service.list();
-            return Ok(tipos);
+            return Ok(new ApiResponse<List<TipoMaterial>>
+            {
+                message = "Lista de tipos de material!",
+                success = true,
+                data = tipos
+            });
         }
 
         [HttpGet("{IdTipoMaterial}")]

@@ -19,7 +19,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Controllers
         public IActionResult Get()
         {
             var materiales = _service.list();
-            return Ok(materiales);
+            return Ok(new ApiResponse<List<Material>>
+            {
+                message = "Lista de materiales!",
+                success = true,
+                data = materiales
+            });
         }
 
         [HttpGet("{IdMaterial}")]

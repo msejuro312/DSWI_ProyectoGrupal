@@ -20,8 +20,8 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         {
             var resp = await _httpClient.GetAsync("api/TipoMaterial");
             var contenido = await resp.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<TipoMaterial>>(contenido) ?? new List<TipoMaterial>();
-            return lista;
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<TipoMaterial>>>(contenido) ?? new ApiResponse<List<TipoMaterial>>();
+            return apiResponse.data ?? new List<TipoMaterial>();
         }
 
         async Task<TipoMaterial> getTipo(int IdTipoMaterial)

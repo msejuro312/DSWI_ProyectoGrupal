@@ -20,8 +20,8 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         {
             var response = await _httpClient.GetAsync("api/Proveedor");
             var content = await response.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<Proveedor>>(content) ?? new List<Proveedor>();
-            return lista;
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<Proveedor>>>(content) ?? new ApiResponse<List<Proveedor>>();
+            return apiResponse.data ?? new List<Proveedor>();
         }
 
         async Task<Proveedor> getProveedor(int IdProveedor)

@@ -21,8 +21,8 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         {
             var response = await _httpClient.GetAsync("api/OrdenCompra");
             var content = await response.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<OrdenCompra>>(content) ?? new List<OrdenCompra>();
-            return lista;
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<OrdenCompra>>>(content) ?? new ApiResponse<List<OrdenCompra>>();
+            return apiResponse.data ?? new List<OrdenCompra>();
         }
 
         async Task<OrdenCompra> getOrden(int IdOrdenCompra)
@@ -37,16 +37,16 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         {
             var response = await _httpClient.GetAsync("api/Proveedor");
             var content = await response.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<Proveedor>>(content) ?? new List<Proveedor>();
-            return lista;
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<Proveedor>>>(content) ?? new ApiResponse<List<Proveedor>>();
+            return apiResponse.data ?? new List<Proveedor>();
         }
 
         async Task<List<Material>> listMateriales()
         {
             var response = await _httpClient.GetAsync("api/Material");
             var content = await response.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<Material>>(content) ?? new List<Material>();
-            return lista;
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<Material>>>(content) ?? new ApiResponse<List<Material>>();
+            return apiResponse.data ?? new List<Material>();
         }
 
         async Task<string> insertar(OrdenCompraVM vm)

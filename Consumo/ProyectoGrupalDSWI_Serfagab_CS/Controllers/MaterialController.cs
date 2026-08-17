@@ -20,8 +20,8 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         {
             var response = await _httpClient.GetAsync("api/Material");
             var content = await response.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<Material>>(content) ?? new List<Material>();
-            return await Task.Run(() => lista);
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<Material>>>(content) ?? new ApiResponse<List<Material>>();
+            return await Task.Run(() => apiResponse.data ?? new List<Material>());
         }
 
         async Task<Material> getMaterial(int IdMaterial)
@@ -37,8 +37,8 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         {
             var response = await _httpClient.GetAsync("api/TipoMaterial");
             var content = await response.Content.ReadAsStringAsync();
-            var lista = JsonConvert.DeserializeObject<List<TipoMaterial>>(content) ?? new List<TipoMaterial>();
-            return await Task.Run(() => lista);
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<TipoMaterial>>>(content) ?? new ApiResponse<List<TipoMaterial>>();
+            return await Task.Run(() => apiResponse.data ?? new List<TipoMaterial>());
         }
 
         async Task<string> insertar(Material material)
