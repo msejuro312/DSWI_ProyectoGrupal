@@ -86,6 +86,16 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(OrdenCompraVM vm)
         {
+            if (vm.IdProveedor <= 0)
+            {
+                TempData["message"] = "Debe seleccionar un proveedor!";
+                return RedirectToAction("Create");
+            }
+            if (vm.Detalles == null || vm.Detalles.Count == 0)
+            {
+                TempData["message"] = "Debe agregar al menos un material al detalle!";
+                return RedirectToAction("Create");
+            }
             var message = await insertar(vm);
             TempData["message"] = message;
             return RedirectToAction("Index");
