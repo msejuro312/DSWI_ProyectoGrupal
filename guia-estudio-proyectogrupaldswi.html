@@ -1691,7 +1691,7 @@ app.<span class="fn">Run</span>();</pre>
         <li><code>1</code> = eliminado correctamente</li>
       </ul>
     </td></tr>
-    <tr><td>Orden de Compra</td><td><code>sp_list_ordenes</code>, <code>sp_find_orden_by_id</code>, <code>sp_list_detalle_orden</code>, <code>sp_insert_orden_compra</code>, <code>sp_insert_detalle_orden</code>, <code>sp_delete_orden_compra</code></td><td><code>sp_insert_orden_compra</code> devuelve <code>SCOPE_IDENTITY()</code>; <code>sp_insert_detalle_orden</code> calcula el <code>subtotal = cantidad * precio_unitario</code></td></tr>
+    <tr><td>Orden de Compra</td><td><code>sp_list_ordenes</code>, <code>sp_find_orden_by_id</code>, <code>sp_list_detalle_orden</code>, <code>sp_insert_orden_compra</code>, <code>sp_insert_detalle_orden</code>, <code>sp_delete_orden_compra</code>, <code>sp_recepcionar_orden</code></td><td><code>sp_insert_orden_compra</code> devuelve <code>SCOPE_IDENTITY()</code>; <code>sp_insert_detalle_orden</code> calcula el <code>subtotal = cantidad * precio_unitario</code>; <code>sp_recepcionar_orden</code> suma stock y cambia el estado a <code>RECIBIDA</code></td></tr>
   </table>
 
   <div class="warn-box"><strong>C&oacute;mo se elimina una orden:</strong> <code>sp_delete_orden_compra</code> primero borra los <strong>detalles</strong> y luego la <strong>cabecera</strong> (para no violar la FK). Si se borrara primero la cabecera, la FK de los detalles lo impedir&iacute;a.</div>
@@ -1746,6 +1746,61 @@ command.<span class="fn">ExecuteNonQuery</span>();
     <tr><td><code>DELETE</code></td><td><code>api/OrdenCompra/{id}</code></td><td><code>sp_delete_orden_compra</code></td><td>Confirma eliminaci&oacute;n (detalles + cabecera)</td></tr>
   </table>
 
+  <h4>Recepcionar una orden (avance implementado) <span class="badge">NUEVO</span></h4>
+  <p>Completa el ciclo de vida de la orden: cuando la mercader&iacute;a llega, se <strong>suma el stock</strong> de cada material del detalle y la orden pasa a <code>RECIBIDA</code>. Es un <strong>UPDATE a dos tablas en una sola transacci&oacute;n</strong> (todo o nada), manejada desde el Service (los SPs del proyecto no gestionan transacciones).</p>
+
+  <span class="code-label">SP sp_recepcionar_orden (validaci&oacute;n + dos UPDATEs)</span>
+<pre>create or alter procedure sp_recepcionar_orden
+@idOrdenCompra INT,
+@resultado INT OUTPUT
+as
+begin
+    if not exists(select 1 from tbl_orden_compra where id_orden_compra = @idOrdenCompra)
+    begin
+        set @resultado = 0  -- no existe
+    end
+    else if not exists(select 1 from tbl_orden_compra where id_orden_compra = @idOrdenCompra and estado in ('PENDIENTE', 'APROBADA'))
+    begin
+        set @resultado = -1  -- ya RECIBIDA o ANULADA: no se puede volver a recepcionar
+    end
+    else
+    begin
+        update m
+        set m.stock_actual = m.stock_actual + d.cantidad
+        from tbl_material m
+        join tbl_detalle_orden_compra d on m.id_material = d.id_material
+        where d.id_orden_compra = @idOrdenCompra
+
+        update tbl_orden_compra
+        set estado = 'RECIBIDA'
+        where id_orden_compra = @idOrdenCompra
+
+        set @resultado = 1  -- recepcionada, stock actualizado
+    end
+end</pre>
+
+  <div class="info-box"><strong>&iquest;Por qu&eacute; el OUTPUT?</strong> Igual que <code>sp_delete_tipo_material</code>: el Service recibe el <code>@resultado</code> para distinguir <code>1</code> (recepcionada) de <code>-1</code> (ya recibida/anulada) y <code>0</code> (no existe). El <code>UPDATE</code> de stock usa un <strong>JOIN</strong> entre <code>tbl_material</code> y <code>tbl_detalle_orden_compra</code> para sumar la cantidad de cada l&iacute;nea de la orden.</div>
+
+  <div class="danger-box"><strong>&iquest;Y si la transacci&oacute;n falla a mitad?</strong> El Service envuelve el SP en una transacci&oacute;n C# con el patr&oacute;n de la secci&oacute;n 9 (catch con <code>_logger.LogError</code> + rollback seguro): si falla el primer UPDATE, no se aplica el segundo. El stock y el estado quedan consistentes.</div>
+
+  <span class="code-label">API: interfaz, Service y endpoint</span>
+<pre><span class="cmt">// IOrdenCompraService</span>
+<span class="cls">int</span> <span class="fn">recepcionar</span>(<span class="cls">int</span> IdOrdenCompra);
+
+<span class="cmt">// OrdenCompraService.recepcionar: SP con OUTPUT @resultado (patr&oacute;n TipoMaterial.delete)</span>
+<span class="cls">SqlParameter</span> resultadoParam = command.Parameters.Add(<span class="str">"@resultado"</span>, System.Data.SqlDbType.Int);
+resultadoParam.Direction = System.Data.ParameterDirection.Output;
+command.<span class="fn">ExecuteNonQuery</span>();
+<span class="cls">int</span> resultado = Convert.ToInt32(resultadoParam.Value);
+
+<span class="cmt">// OrdenCompraController</span>
+<span class="ann">[HttpPost(</span><span class="str">"{IdOrdenCompra}/recepcionar"</span><span class="ann">)]</span>
+<span class="kwd">public</span> <span class="cls">IActionResult</span> <span class="fn">Recepcionar</span>(<span class="cls">int</span> IdOrdenCompra) { ... }</pre>
+
+  <p>El controller responde: <code>1</code> &rarr; <code>Ok</code> "Orden de compra recepcionada, stock actualizado!"; <code>-1</code> &rarr; <code>BadRequest</code> "No se puede recepcionar: la orden ya fue recepcionada o est&aacute; anulada"; <code>0</code> &rarr; <code>NotFound</code>.</p>
+
+  <div class="info-box"><strong>Cliente:</strong> en el <code>Index.cshtml</code> de &Oacute;rdenes de Compra cada fila muestra un bot&oacute;n <strong>Recepcionar</strong> (solo si el estado es <code>PENDIENTE</code> o <code>APROBADA</code>), que env&iacute;a un <code>POST</code> a <code>api/OrdenCompra/{id}/recepcionar</code> y muestra el mensaje en la lista.</div>
+
   <h3>8.3. Cliente MVC: archivos nuevos y modificados</h3>
   <ul>
     <li><strong>Nuevos:</strong> <code>Models/Proveedor.cs</code>, <code>Models/OrdenCompra.cs</code>, <code>Models/DetalleOrdenCompra.cs</code>, <code>Models/OrdenCompraVM.cs</code>, <code>Controllers/ProveedorController.cs</code>, <code>Controllers/OrdenCompraController.cs</code>, vistas <code>Views/Proveedor/</code> (Index, Create, Edit, Delete) y <code>Views/OrdenCompra/</code> (Index, Create, Details, Delete).</li>
@@ -1796,8 +1851,8 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
   <table>
     <tr><th>Estado</th><th>Significado</th><th>&iquest;Cu&aacute;ndo?</th></tr>
     <tr><td><code>PENDIENTE</code></td><td>Orden creada, a&uacute;n no aprobada ni recibida</td><td>Default al insertar (columna <code>estado DEFAULT 'PENDIENTE'</code>)</td></tr>
-    <tr><td><code>APROBADA</code></td><td>Autorizada para compra</td><td>Avance de Recepcionar (futuro)</td></tr>
-    <tr><td><code>RECIBIDA</code></td><td>Mercader&iacute;a recibida, suma stock (futuro)</td><td>Avance de Recepcionar (futuro)</td></tr>
+    <tr><td><code>APROBADA</code></td><td>Autorizada para compra</td><td>Viene en los datos de prueba; Recepcionar la acepta como v&aacute;lida</td></tr>
+    <tr><td><code>RECIBIDA</code></td><td>Mercader&iacute;a recibida, suma stock</td><td><strong>Implementado:</strong> bot&oacute;n Recepcionar (secci&oacute;n 8.2)</td></tr>
     <tr><td><code>ANULADA</code></td><td>Cancelada, no afecta stock</td><td>Acci&oacute;n manual (futuro)</td></tr>
   </table>
 </div>
@@ -1979,7 +2034,7 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
 
   <p>El sistema <strong>SERFAGAB</strong> completo (seg&uacute;n el proyecto de referencia <code>PROYECTO_LP2_GRUPO_B</code> y su script <code>serfagab.sql</code>) no se queda solo en materiales: suma <strong>proveedores, &oacute;rdenes de compra con detalle, usuarios con login, dashboard y reportes</strong>. Cada avance usa <strong>exactamente la misma arquitectura</strong> que ya dominamos (tabla + SPs + Service + Controller + vista), as&iacute; que todo es incremental.</p>
 
-  <div class="info-box"><strong>&iexcl;Actualizaci&oacute;n!</strong> Los avances <strong>1 (Proveedor)</strong>, <strong>2 (Orden de Compra, sin Recepcionar)</strong> y <strong>5 (TipoMaterial CRUD)</strong> ya est&aacute;n <strong>implementados</strong> &mdash; ver <a href="#avances-impl">secci&oacute;n 8</a>. Este plan queda enfocado en lo <strong>pendiente</strong>: <strong>Recepcionar</strong>, <strong>Usuarios/Login</strong> y <strong>Dashboard/Reportes</strong>.</div>
+  <div class="info-box"><strong>&iexcl;Actualizaci&oacute;n!</strong> Los avances <strong>1 (Proveedor)</strong>, <strong>2 (Orden de Compra, ya con Recepcionar)</strong> y <strong>5 (TipoMaterial CRUD)</strong> est&aacute;n <strong>implementados</strong> &mdash; ver <a href="#avances-impl">secci&oacute;n 8</a>. Este plan queda enfocado en lo <strong>pendiente</strong>: <strong>Usuarios/Login</strong> y <strong>Dashboard/Reportes</strong>.</div>
 
   <div class="roadmap">
     <strong>Modelo de datos objetivo (tablas nuevas):</strong>
@@ -1998,12 +2053,11 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
     <li class="summary-step"><strong>Cliente:</strong> <code>ProveedorController</code> + vistas Index/Create/Edit/Delete y enlace en el men&uacute;.</li>
   </ol>
 
-  <h3>Avance 2 &mdash; M&oacute;dulo Orden de Compra <span class="badge">IMPLEMENTADO (sin Recepcionar) &mdash; secci&oacute;n 8</span></h3>
+  <h3>Avance 2 &mdash; M&oacute;dulo Orden de Compra <span class="badge">IMPLEMENTADO (con Recepcionar) &mdash; secci&oacute;n 8</span></h3>
   <ol>
-    <li class="summary-step"><strong>Hecho:</strong> <code>tbl_orden_compra</code> y <code>tbl_detalle_orden_compra</code>, listar &oacute;rdenes (con raz&oacute;n social del proveedor), buscar por id (cabecera + detalle), <strong>insertar la orden + sus detalles en una sola transacci&oacute;n</strong> (subtotal y total calculados), y <code>sp_delete_orden_compra</code>.</li>
-    <li class="summary-step"><strong>API:</strong> Models <code>OrdenCompra</code>, <code>DetalleOrdenCompra</code>; <code>IOrdenCompraService</code> con <code>insert(orden)</code> usando una <strong>transacci&oacute;n ADO.NET</strong> (cabecera con <code>SCOPE_IDENTITY()</code> + bucle de detalles).</li>
-    <li class="summary-step"><strong>Cliente:</strong> listado, formulario "Nueva orden" con <strong>filas din&aacute;micas</strong> (jQuery) y vista de detalle.</li>
-    <li class="summary-step"><strong>PENDIENTE:</strong> bot&oacute;n/endpoint <strong>"Recepcionar"</strong> que suma el stock de cada material y cambia el estado a <code>RECEPCIONADA</code> (patr&oacute;n de transacci&oacute;n actualizando dos tablas).</li>
+    <li class="summary-step"><strong>Hecho:</strong> <code>tbl_orden_compra</code> y <code>tbl_detalle_orden_compra</code>, listar &oacute;rdenes (con raz&oacute;n social del proveedor), buscar por id (cabecera + detalle), <strong>insertar la orden + sus detalles en una sola transacci&oacute;n</strong> (subtotal y total calculados), <code>sp_delete_orden_compra</code> y <strong>Recepcionar</strong> (<code>sp_recepcionar_orden</code> suma stock + estado <code>RECIBIDA</code>, con validaci&oacute;n para no doblar la recepci&oacute;n).</li>
+    <li class="summary-step"><strong>API:</strong> Models <code>OrdenCompra</code>, <code>DetalleOrdenCompra</code>; <code>IOrdenCompraService</code> con <code>insert(orden)</code> usando una <strong>transacci&oacute;n ADO.NET</strong> (cabecera con <code>SCOPE_IDENTITY()</code> + bucle de detalles) y <code>recepcionar(id)</code> con <code>POST api/OrdenCompra/{id}/recepcionar</code>.</li>
+    <li class="summary-step"><strong>Cliente:</strong> listado, formulario "Nueva orden" con <strong>filas din&aacute;micas</strong> (jQuery), vista de detalle y bot&oacute;n <strong>Recepcionar</strong> por fila (solo en <code>PENDIENTE</code>/<code>APROBADA</code>).</li>
   </ol>
 
   <h3>Avance 3 &mdash; Usuarios y Login</h3>

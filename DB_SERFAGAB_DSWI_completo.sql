@@ -403,6 +403,36 @@ begin
 end
 GO
 
+create or alter procedure sp_recepcionar_orden
+@idOrdenCompra INT,
+@resultado INT OUTPUT
+as
+begin
+    if not exists(select 1 from tbl_orden_compra where id_orden_compra = @idOrdenCompra)
+    begin
+        set @resultado = 0  -- no existe
+    end
+    else if not exists(select 1 from tbl_orden_compra where id_orden_compra = @idOrdenCompra and estado in ('PENDIENTE', 'APROBADA'))
+    begin
+        set @resultado = -1  -- ya RECIBIDA o ANULADA: no se puede volver a recepcionar
+    end
+    else
+    begin
+        update m
+        set m.stock_actual = m.stock_actual + d.cantidad
+        from tbl_material m
+        join tbl_detalle_orden_compra d on m.id_material = d.id_material
+        where d.id_orden_compra = @idOrdenCompra
+
+        update tbl_orden_compra
+        set estado = 'RECIBIDA'
+        where id_orden_compra = @idOrdenCompra
+
+        set @resultado = 1  -- recepcionada, stock actualizado
+    end
+end
+GO
+
 
 --NUEVOS INSERTS
 

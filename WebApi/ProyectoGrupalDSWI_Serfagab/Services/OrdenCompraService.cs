@@ -208,5 +208,40 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
             }
             return resp;
         }
+
+        public int recepcionar(int IdOrdenCompra)
+        {
+            int resultado = 0;
+
+            using (SqlConnection con = new SqlConnection(conexion))
+            {
+                con.Open();
+                SqlTransaction tran = con.BeginTransaction();
+                try
+                {
+                    using (SqlCommand command = new SqlCommand("sp_recepcionar_orden", con))
+                    {
+                        command.Transaction = tran;
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@idOrdenCompra", IdOrdenCompra);
+                        SqlParameter resultadoParam = command.Parameters.Add("@resultado", System.Data.SqlDbType.Int);
+                        resultadoParam.Direction = System.Data.ParameterDirection.Output;
+                        command.ExecuteNonQuery();
+                        if (resultadoParam.Value != null && resultadoParam.Value != DBNull.Value)
+                        {
+                            resultado = Convert.ToInt32(resultadoParam.Value);
+                        }
+                        tran.Commit();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al recepcionar la orden de compra {IdOrdenCompra}", IdOrdenCompra);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en recepcion de orden de compra"); }
+                }
+            }
+            return resultado;
+        }
     }
 }

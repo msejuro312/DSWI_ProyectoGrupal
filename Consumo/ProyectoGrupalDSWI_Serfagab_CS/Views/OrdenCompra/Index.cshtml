@@ -59,6 +59,14 @@
             </td>
             <td>
                 @Html.ActionLink("Details", "Details", new { IdOrdenCompra = item.IdOrdenCompra }) |
+                @if (item.Estado == "PENDIENTE" || item.Estado == "APROBADA")
+                {
+                    <form asp-action="Recepcionar" method="post" style="display:inline;">
+                        <input type="hidden" name="IdOrdenCompra" value="@item.IdOrdenCompra" />
+                        <button type="submit" class="btn btn-link" style="padding:0;">Recepcionar</button>
+                    </form>
+                    <span>|</span>
+                }
                 @Html.ActionLink("Delete", "Delete", new { IdOrdenCompra = item.IdOrdenCompra })
             </td>
         </tr>

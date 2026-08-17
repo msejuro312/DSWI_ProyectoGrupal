@@ -109,5 +109,38 @@ namespace ProyectoGrupalDSWI_Serfagab.Controllers
                 });
             }
         }
+
+        [HttpPost("{IdOrdenCompra}/recepcionar")]
+        public IActionResult Recepcionar(int IdOrdenCompra)
+        {
+            var resultado = _service.recepcionar(IdOrdenCompra);
+            if (resultado == 1)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    message = "Orden de compra recepcionada, stock actualizado!",
+                    success = true,
+                    data = ""
+                });
+            }
+            else if (resultado == -1)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    message = "No se puede recepcionar: la orden ya fue recepcionada o está anulada",
+                    success = false,
+                    data = ""
+                });
+            }
+            else
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    message = "No se encontró la orden de compra con el id " + IdOrdenCompra,
+                    success = false,
+                    data = ""
+                });
+            }
+        }
     }
 }

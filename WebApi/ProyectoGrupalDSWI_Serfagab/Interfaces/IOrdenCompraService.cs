@@ -8,5 +8,6 @@ namespace ProyectoGrupalDSWI_Serfagab.Interfaces
         OrdenCompra getById(int IdOrdenCompra);
         int insert(OrdenCompra orden);
         bool delete(int IdOrdenCompra);
+        int recepcionar(int IdOrdenCompra);
     }
 }

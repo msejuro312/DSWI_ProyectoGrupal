@@ -67,6 +67,14 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
             return apiResponse.message;
         }
 
+        async Task<string> recepcionar(int IdOrdenCompra)
+        {
+            var request = await _httpClient.PostAsync("api/OrdenCompra/" + IdOrdenCompra + "/recepcionar", null);
+            var response = await request.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<object>>(response) ?? new ApiResponse<object>();
+            return apiResponse.message;
+        }
+
         public async Task<IActionResult> Index()
         {
             var lista = await listOrdenes();
@@ -128,6 +136,14 @@ namespace ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Controllers
         public async Task<IActionResult> DeleteConfirmed(int IdOrdenCompra)
         {
             var message = await eliminar(IdOrdenCompra);
+            TempData["message"] = message;
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Recepcionar(int IdOrdenCompra)
+        {
+            var message = await recepcionar(IdOrdenCompra);
             TempData["message"] = message;
             return RedirectToAction("Index");
         }
