@@ -2168,6 +2168,18 @@ TempData["tipo"] = apiResponse.success ? "success" : "danger";</pre>
     <li>Tablas con <code>table-striped</code> y fila "No hay registros" manejada por DataTables (<code>zeroRecords</code> en espa&ntilde;ol).</li>
   </ul>
 
+  <h3>12.7. Portada y dashboard (Home)</h3>
+  <p>La pantalla principal del cliente (antes el "Welcome" por defecto) ahora es una <strong>portada SERFAGAB</strong> con un dashboard simple y din&aacute;mico. <code>HomeController.Index</code> inyecta <code>HttpClient</code> (igual que los dem&aacute;s controllers) y consume los 4 endpoints de lista que ya exist&iacute;an (<code>api/TipoMaterial</code>, <code>api/Material</code>, <code>api/Proveedor</code>, <code>api/OrdenCompra</code>); <strong>no</strong> se a&ntilde;adi&oacute; nada a la API ni a la BD.</p>
+  <p>Las estad&iacute;sticas se calculan en C# y se guardan en <code>ViewBag</code>:</p>
+  <pre>ViewBag.Tipos = tipos.Count;
+ViewBag.Materiales = materiales.Count;
+ViewBag.Proveedores = proveedores.Count;
+ViewBag.Ordenes = ordenes.Count;
+ViewBag.StockTotal = materiales.Sum(m =&gt; m.StockActual);
+ViewBag.Pendientes = ordenes.Count(o =&gt; o.Estado == "PENDIENTE");
+ViewBag.UltimasOrdenes = ordenes.OrderByDescending(o =&gt; o.Fecha).Take(5).ToList();</pre>
+  <p>Cada llamada va en su propio <code>try/catch</code>: si la API no est&aacute; corriendo, la portada igual carga mostrando <strong>0</strong> en las tarjetas y la tabla vac&iacute;a (y se loguea el error con <code>ILogger</code>). La vista muestra un t&iacute;tulo <strong>SERFAGAB</strong> grande, 6 tarjetas de estad&iacute;sticas (Bootstrap puro con <code>border-top</code> de color) y una tabla con las <strong>5 &uacute;ltimas &oacute;rdenes</strong> reutilizando los badges de estado y el formato <code>S/</code> de la secci&oacute;n 12.</p>
+
   <div class="warn-box"><strong>Nota sobre el CDN:</strong> DataTables se carga desde internet. Si el sal&oacute;n de clases no tiene internet, descargar <code>jquery.dataTables.min.js</code>, <code>dataTables.bootstrap5.min.js</code> y el CSS a <code>wwwroot/lib/datatables/</code> y cambiar los <code>src</code>/<code>href</code> por rutas locales (<code>~/lib/datatables/...</code>).</div>
 </div>
 

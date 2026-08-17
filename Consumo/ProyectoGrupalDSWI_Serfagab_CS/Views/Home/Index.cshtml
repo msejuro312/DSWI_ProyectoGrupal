@@ -1,8 +1,100 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
+    var ultimasOrdenes = ViewBag.UltimasOrdenes as List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra>
+        ?? new List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra>();
+    int i = 0;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center my-4">
+    <h1 class="display-3 fw-bold text-primary">SERFAGAB</h1>
+    <p class="lead text-muted">Gestión de inventario y órdenes de compra</p>
 </div>
+
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-6 g-3 mb-4">
+    <div class="col">
+        <div class="card border-top border-4 border-primary h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Tipos de material</div>
+                <div class="display-5 fw-bold">@ViewBag.Tipos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-top border-4 border-success h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Materiales</div>
+                <div class="display-5 fw-bold">@ViewBag.Materiales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-top border-4 border-info h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Proveedores</div>
+                <div class="display-5 fw-bold">@ViewBag.Proveedores</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-top border-4 border-warning h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Órdenes de compra</div>
+                <div class="display-5 fw-bold">@ViewBag.Ordenes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-top border-4 border-dark h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Stock total</div>
+                <div class="display-5 fw-bold">@ViewBag.StockTotal.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-top border-4 border-danger h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small">Órdenes pendientes</div>
+                <div class="display-5 fw-bold">@ViewBag.Pendientes</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4>Últimas órdenes de compra</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Proveedor</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (ultimasOrdenes.Count == 0)
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No hay órdenes registradas</td>
+            </tr>
+        }
+        @foreach (var item in ultimasOrdenes)
+        {
+            <tr>
+                <td>@(++i)</td>
+                <td>@item.Proveedor</td>
+                <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
+                <td><span class="badge @(item.Estado switch
+                {
+                    "PENDIENTE" => "bg-warning text-dark",
+                    "APROBADA" => "bg-info text-dark",
+                    "RECIBIDA" => "bg-success",
+                    "ANULADA" => "bg-secondary",
+                    _ => "bg-secondary"
+                })">@item.Estado</span></td>
+                <td>S/ @item.Total.ToString("N2")</td>
+            </tr>
+        }
+    </tbody>
+</table>
