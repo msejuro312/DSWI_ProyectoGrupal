@@ -7,10 +7,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
     public class ProveedorService : IProveedorService
     {
         private readonly string? conexion;
+        private readonly ILogger<ProveedorService> _logger;
 
-        public ProveedorService(IConfiguration configuration)
+        public ProveedorService(IConfiguration configuration, ILogger<ProveedorService> logger)
         {
             conexion = configuration.GetConnectionString("conexion");
+            _logger = logger;
         }
 
         public List<Proveedor> list()
@@ -98,9 +100,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al insertar proveedor {RazonSocial}", proveedor.RazonSocial);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en insert de proveedor"); }
                 }
             }
             return resp;
@@ -130,9 +134,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al actualizar proveedor {IdProveedor}", proveedor.IdProveedor);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en update de proveedor"); }
                 }
             }
             return resp;
@@ -157,9 +163,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al eliminar proveedor {IdProveedor}", IdProveedor);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en delete de proveedor"); }
                 }
             }
             return resp;

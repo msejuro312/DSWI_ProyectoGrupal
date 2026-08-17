@@ -7,10 +7,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
     public class OrdenCompraService : IOrdenCompraService
     {
         private readonly string? conexion;
+        private readonly ILogger<OrdenCompraService> _logger;
 
-        public OrdenCompraService(IConfiguration configuration)
+        public OrdenCompraService(IConfiguration configuration, ILogger<OrdenCompraService> logger)
         {
             conexion = configuration.GetConnectionString("conexion");
+            _logger = logger;
         }
 
         public List<OrdenCompra> list()
@@ -169,9 +171,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
 
                     tran.Commit();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al registrar la orden de compra del proveedor {IdProveedor}", orden.IdProveedor);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en insert de orden de compra"); }
                     idOrden = 0;
                 }
             }

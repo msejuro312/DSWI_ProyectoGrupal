@@ -7,10 +7,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
     public class TipoMaterialService : ITipoMaterialService
     {
         private readonly string? conexion;
+        private readonly ILogger<TipoMaterialService> _logger;
 
-        public TipoMaterialService(IConfiguration configuration)
+        public TipoMaterialService(IConfiguration configuration, ILogger<TipoMaterialService> logger)
         {
             conexion = configuration.GetConnectionString("conexion");
+            _logger = logger;
         }
 
         public List<TipoMaterial> list()
@@ -89,9 +91,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al insertar tipo de material {Nombre}", tipoMaterial.Nombre);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en insert de tipo de material"); }
                 }
             }
             return resp;
@@ -118,9 +122,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al actualizar tipo de material {IdTipoMaterial}", tipoMaterial.IdTipoMaterial);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en update de tipo de material"); }
                 }
             }
             return resp;
@@ -151,9 +157,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al eliminar tipo de material {IdTipoMaterial}", IdTipoMaterial);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en delete de tipo de material"); }
                 }
             }
             return resultado;

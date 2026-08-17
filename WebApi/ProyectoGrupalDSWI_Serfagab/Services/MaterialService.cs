@@ -7,10 +7,12 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
     public class MaterialService : IMaterialService
     {
         private readonly string? conexion;
+        private readonly ILogger<MaterialService> _logger;
 
-        public MaterialService(IConfiguration configuration)
+        public MaterialService(IConfiguration configuration, ILogger<MaterialService> logger)
         {
             conexion = configuration.GetConnectionString("conexion");
+            _logger = logger;
         }
 
         public List<Material> list()
@@ -103,9 +105,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al insertar material {Nombre}", material.Nombre);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en insert de material"); }
                 }
             }
             return resp;
@@ -136,9 +140,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al actualizar material {IdMaterial}", material.IdMaterial);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en update de material"); }
                 }
             }
             return resp;
@@ -163,9 +169,11 @@ namespace ProyectoGrupalDSWI_Serfagab.Services
                         tran.Commit();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    tran.Rollback();
+                    _logger.LogError(ex, "Error al eliminar material {IdMaterial}", IdMaterial);
+                    try { tran.Rollback(); }
+                    catch (Exception rbEx) { _logger.LogError(rbEx, "Fallo adicional al hacer rollback en delete de material"); }
                 }
             }
             return resp;

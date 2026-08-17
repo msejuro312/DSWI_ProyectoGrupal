@@ -127,6 +127,7 @@
     <li><a href="#errores">Errores reales que resolv&iacute; (para no volver a tropezar)</a></li>
     <li><a href="#resumen">Resumen: orden completo de creaci&oacute;n y ejecuci&oacute;n</a></li>
     <li><a href="#avances-impl">AVANCES IMPLEMENTADOS: Proveedor, Orden de Compra y TipoMaterial CRUD</a></li>
+    <li><a href="#excepciones">Manejo de excepciones en los Services (mejora implementada)</a></li>
     <li><a href="#avances">Pr&oacute;ximos avances del proyecto (plan detallado)</a></li>
   </ol>
 </div>
@@ -1794,8 +1795,118 @@ Detalles[1].IdMaterial      Detalles[1].Cantidad      Detalles[1].PrecioUnitario
 </div>
 
 <!-- ============================================================ -->
+<div class="section-card" id="excepciones">
+  <h2>9. Manejo de excepciones en los Services (mejora implementada)</h2>
+
+  <p>Al revisar el proyecto con enfoque de profesor se detect&oacute; un problema de robustez en todos los Services de la API: los m&eacute;todos de escritura (insert/update/delete) usaban este patr&oacute;n:</p>
+
+  <span class="code-label">Antes (en los 4 Services)</span>
+<pre><span class="kwd">catch</span> (<span class="cls">Exception</span>)
+{
+    tran.<span class="fn">Rollback</span>();
+}</pre>
+
+  <div class="danger-box"><strong>&iquest;Qu&eacute; problemas ten&iacute;a ese patr&oacute;n?</strong>
+    <ol style="margin-top:8px;">
+      <li><strong>Se tragaba el error:</strong> el <code>catch</code> no capturaba la excepci&oacute;n en una variable ni la registraba. Si el SP fallaba (FK inv&aacute;lida, tipo de dato, conexi&oacute;n), nadie sab&iacute;a por qu&eacute;.</li>
+      <li><strong>El Rollback pod&iacute;a enmascarar el error original:</strong> si la conexi&oacute;n se rompi&oacute; o la transacci&oacute;n ya se cerr&oacute;, el propio <code>tran.Rollback()</code> lanza <strong>otra excepci&oacute;n</strong> que se escapa sin manejo y llega al cliente como un <code>500</code> sin detalles.</li>
+      <li><strong>El usuario no recibe informaci&oacute;n &uacute;til:</strong> el controller solo respond&iacute;a <em>"No se pudo insertar el material"</em>, imposible distinguir un problema de FK de un problema de conexi&oacute;n.</li>
+    </ol>
+  </div>
+
+  <p><strong>Soluci&oacute;n implementada (nivel 2):</strong> inyectar <code>ILogger&lt;T&gt;</code> en cada Service y usar un <code>catch</code> que <strong>loguee la excepci&oacute;n original</strong> y haga el <strong>Rollback seguro</strong> (si el Rollback tambi&eacute;n falla, se captura y se loguea por separado, sin perder el error original).</p>
+
+  <h3>9.1. Constructor: inyectar ILogger&lt;T&gt;</h3>
+
+  <span class="code-label">Services/MaterialService.cs (constructor)</span>
+<pre><span class="kwd">private readonly string?</span> conexion;
+<span class="kwd">private readonly</span> <span class="cls">ILogger</span>&lt;<span class="cls">MaterialService</span>&gt; _logger;
+
+<span class="kwd">public</span> <span class="fn">MaterialService</span>(<span class="cls">IConfiguration</span> configuration, <span class="cls">ILogger</span>&lt;<span class="cls">MaterialService</span>&gt; logger)
+{
+    conexion = configuration.<span class="fn">GetConnectionString</span>(<span class="str">"conexion"</span>);
+    _logger = logger;
+}</pre>
+
+  <p>El mismo cambio se aplic&oacute; a <code>ProveedorService</code>, <code>TipoMaterialService</code> y <code>OrdenCompraService</code>. ASP.NET Core resuelve <code>ILogger&lt;T&gt;</code> autom&aacute;ticamente por inyecci&oacute;n de dependencias; <strong>no hay que registrarlo en Program.cs</strong>.</p>
+
+  <h3>9.2. El nuevo patr&oacute;n de catch (ejemplo: MaterialService.insert)</h3>
+
+  <span class="code-label">Despu&eacute;s (patr&oacute;n en todos los m&eacute;todos de escritura)</span>
+<pre><span class="kwd">catch</span> (<span class="cls">Exception</span> ex)
+{
+    _logger.<span class="fn">LogError</span>(ex, <span class="str">"Error al insertar material {Nombre}"</span>, material.Nombre);
+    <span class="kwd">try</span> { tran.<span class="fn">Rollback</span>(); }
+    <span class="kwd">catch</span> (<span class="cls">Exception</span> rbEx) { _logger.<span class="fn">LogError</span>(rbEx, <span class="str">"Fallo adicional al hacer rollback en insert de material"</span>); }
+}</pre>
+
+  <div class="info-box"><strong>C&oacute;mo funciona:</strong>
+    <ul>
+      <li><code>ex</code> es el <strong>error original</strong>: se registra con <code>_logger.LogError(ex, "...")</code>, que escribe el mensaje y el stack trace en la consola / ventana Output.</li>
+      <li>El <code>Rollback</code> se ejecuta dentro de un <code>try</code> propio: si falla, la excepci&oacute;n se captura como <code>rbEx</code> y se loguea por separado. As&iacute; <strong>ninguna excepci&oacute;n queda sin capturar</strong> y no se pierde el error original.</li>
+      <li>El <code>{Nombre}</code> entre llaves es un <strong>placeholder estructurado</strong>: el framework lo reemplaza por el valor y lo guarda como campo buscable en los logs.</li>
+    </ul>
+  </div>
+
+  <h3>9.3. M&aacute;s detalles de la implementaci&oacute;n</h3>
+  <ul>
+    <li><strong>4 Services modificados:</strong> <code>MaterialService</code> (insert/update/delete), <code>ProveedorService</code> (insert/update/delete), <code>TipoMaterialService</code> (insert/update/delete) y <code>OrdenCompraService</code> (solo <code>insert</code>, que escribe cabecera + detalles).</li>
+    <li><strong>Transacciones de una sola sentencia:</strong> se mantuvieron tal cual (decisi&oacute;n del equipo para conservar el estilo de la pareja MiReplica). Nota acad&eacute;mica: en operaciones de un solo <code>ExecuteNonQuery</code> la transacci&oacute;n no aporta nada (la sentencia ya es at&oacute;mica); solo es necesaria donde hay m&uacute;ltiples sentencias, como <code>OrdenCompraService.insert()</code>.</li>
+    <li><strong>Mensajes al usuario:</strong> se conserv&oacute; la respuesta gen&eacute;rica (<code>BadRequest</code> "No se pudo..."), pero ahora el detalle real queda en el log del servidor. El siguiente nivel (nivel 3) ser&iacute;a propagar el error al controller para devolver mensajes espec&iacute;ficos (ej. FK inv&aacute;lida) o un middleware global de <code>ProblemDetails</code>.</li>
+  </ul>
+
+  <h3>9.4. C&oacute;mo probar el cambio (resultado real comprobado)</h3>
+  <ol>
+    <li class="summary-step"><strong>Levantar la API</strong> (F5 o <code>dotnet run</code>) en <code>https://localhost:7229/swagger</code>.</li>
+    <li class="summary-step"><strong>Provocar un error real:</strong> en Swagger, <code>POST api/Material</code> con un <code>idTipoMaterial</code> que no exista (ej. <code>999</code>). La FK de <code>tbl_material.id_tipo_material</code> lanzar&aacute; una <code>SqlException</code> con <code>Error Number: 547</code>.</li>
+  </ol>
+
+  <span class="code-label">JSON de prueba correcto (POST /api/Material)</span>
+<pre>{
+  <span class="str">"idTipoMaterial"</span>: <span class="num">999</span>,
+  <span class="str">"nombre"</span>: <span class="str">"Material de prueba FK"</span>,
+  <span class="str">"unidadMedida"</span>: <span class="str">"unidad"</span>,
+  <span class="str">"stockActual"</span>: <span class="num">10</span>,
+  <span class="str">"precioReferencial"</span>: <span class="num">5.5</span>,
+  <span class="str">"descripcion"</span>: <span class="str">"Prueba de manejo de excepciones"</span>,
+  <span class="str">"tipoMaterial"</span>: <span class="str">"x"</span>
+}</pre>
+
+  <div class="danger-box"><strong>&iexcl;Ojo con la validaci&oacute;n de modelo!</strong> Si el JSON no incluye <code>"tipoMaterial"</code>, ASP.NET Core responde <code>400</code> por validaci&oacute;n de modelo (<em>"The TipoMaterial field is required."</em>) <strong>antes</strong> de llegar al Service: no habr&aacute; <code>SqlException</code> ni log. Por eso el JSON de prueba debe llevar <code>"tipoMaterial": "x"</code> (cualquier string no vac&iacute;o; la propiedad solo es informativa y no se usa en el <code>insert</code>).</div>
+
+  <ol start="3">
+    <li class="summary-step"><strong>Observar la respuesta del endpoint:</strong> sigue siendo <code>400</code> con el mensaje gen&eacute;rico (no cambia el comportamiento hacia el usuario):</li>
+  </ol>
+
+  <span class="code-label">Response body esperado</span>
+<pre>{
+  <span class="str">"message"</span>: <span class="str">"No se pudo insertar el material"</span>,
+  <span class="str">"success"</span>: <span class="kwd">false</span>,
+  <span class="str">"data"</span>: <span class="str">""</span>
+}</pre>
+
+  <ol start="4">
+    <li class="summary-step"><strong>Buscar el log del error:</strong> en la ventana <strong>Output</strong> de Visual Studio (o en la consola de <code>dotnet run</code>). Debe aparecer una l&iacute;nea <code>fail:</code> con el <code>LogError</code> y el detalle que antes se perd&iacute;a. El inicio de ese mensaje es as&iacute;:</li>
+  </ol>
+
+  <span class="code-label">Inicio del mensaje en el Output (resultado comprobado)</span>
+<pre>fail: ProyectoGrupalDSWI_Serfagab.Services.MaterialService[0]
+      Error al insertar material Material de prueba FK
+      Microsoft.Data.SqlClient.SqlException (0x80131904): The INSERT statement conflicted with the FOREIGN KEY constraint "FK__tbl_mater__id_ti__3A81B327". The conflict occurred in database "DB_SERFAGAB_DSWI", table "dbo.tbl_tipo_material", column 'id_tipo_material'.
+      The statement has been terminated.
+      ...
+      at ProyectoGrupalDSWI_Serfagab.Services.MaterialService.insert(Material material) in ...\Services\MaterialService.cs:line 104
+      ...
+      Error Number:547,State:0,Class:16</pre>
+
+  <div class="info-box"><strong>C&oacute;mo leer el log:</strong> la primera l&iacute;nea (<code>fail:</code> + nombre del Service) es la categor&iacute;a; la segunda es el mensaje estructurado <code>Error al insertar material {Nombre}</code>; la tercera es el <strong>mensaje original de la <code>SqlException</code></strong> (la FK violada y la columna), y abajo vienen el stack trace completo (con la l&iacute;nea exacta del Service) y el <code>Error Number:547</code>.</div>
+
+  <div class="warn-box"><strong>Otra prueba r&aacute;pida:</strong> detener el servicio de SQL Server (o cambiar la cadena de conexi&oacute;n a un puerto inv&aacute;lido) y ejecutar cualquier GET/POST. El error de conexi&oacute;n (<code>SqlException</code> de timeout) quedar&aacute; registrado en el log en lugar de perderse.</div>
+</div>
+
+<!-- ============================================================ -->
 <div class="section-card" id="avances">
-  <h2>9. Pr&oacute;ximos avances del proyecto (plan detallado)</h2>
+  <h2>10. Pr&oacute;ximos avances del proyecto (plan detallado)</h2>
 
   <p>El sistema <strong>SERFAGAB</strong> completo (seg&uacute;n el proyecto de referencia <code>PROYECTO_LP2_GRUPO_B</code> y su script <code>serfagab.sql</code>) no se queda solo en materiales: suma <strong>proveedores, &oacute;rdenes de compra con detalle, usuarios con login, dashboard y reportes</strong>. Cada avance usa <strong>exactamente la misma arquitectura</strong> que ya dominamos (tabla + SPs + Service + Controller + vista), as&iacute; que todo es incremental.</p>
 
