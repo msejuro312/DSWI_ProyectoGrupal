@@ -6,74 +6,77 @@
         ?? new List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Material>();
 }
 
-<h1>Nueva Orden de Compra</h1>
-<hr />
-@if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
-{
-    <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
-        @TempData["message"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-<form asp-action="Create" method="post">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label asp-for="IdProveedor" class="control-label"></label>
-                <select asp-for="IdProveedor" asp-items="@ViewBag.proveedores" class="form-select">
-                    <option value="">-- Seleccione proveedor --</option>
-                </select>
-                <span asp-validation-for="IdProveedor" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label asp-for="Fecha" class="control-label"></label>
-                <input asp-for="Fecha" class="form-control" type="date" />
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label asp-for="Estado" class="control-label"></label>
-                <input asp-for="Estado" class="form-control" readonly />
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-8">
-            <div class="form-group">
-                <label asp-for="Observaciones" class="control-label"></label>
-                <input asp-for="Observaciones" class="form-control" />
-            </div>
-        </div>
-    </div>
+<div class="card shadow-lg">
+    <div class="card-body">
+        <h1 class="card-title text-center">
+            <i class="fa-solid fa-cart-plus me-2 text-success"></i>Nueva Orden de Compra
+        </h1>
 
-    <hr />
-    <h4>Detalle de la orden</h4>
-    <table class="table" id="tablaDetalle">
-        <thead>
-            <tr>
-                <th>Material</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Subtotal</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    <button type="button" id="btnAgregar" class="btn btn-secondary">+ Agregar material</button>
+        @if (!string.IsNullOrEmpty(TempData["message"]?.ToString()))
+        {
+            <div class="alert alert-@(TempData["tipo"] ?? "info") alert-dismissible fade show" role="alert">
+                @TempData["message"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
 
-    <hr />
-    <div class="form-group">
-        <h4>Total: S/ <span id="lblTotal">0.00</span></h4>
+        <form asp-action="Create" method="post">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label asp-for="IdProveedor" class="form-label"></label>
+                    <select asp-for="IdProveedor" asp-items="@ViewBag.proveedores" class="form-select">
+                        <option value="">-- Seleccione proveedor --</option>
+                    </select>
+                    <span asp-validation-for="IdProveedor" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Fecha" class="form-label"></label>
+                    <input asp-for="Fecha" class="form-control" type="date" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Estado" class="form-label"></label>
+                    <input asp-for="Estado" class="form-control" readonly />
+                </div>
+                <div class="col-md-12">
+                    <label asp-for="Observaciones" class="form-label"></label>
+                    <input asp-for="Observaciones" class="form-control" />
+                </div>
+            </div>
+
+            <hr />
+            <h4 class="text-dark"><i class="fa-solid fa-list me-2"></i>Detalle de la orden</h4>
+            <table id="tablaDetalle" class="table table-hover table-responsive table-secondary">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Material</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <button type="button" id="btnAgregar" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Agregar material
+            </button>
+
+            <hr />
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <h4 class="text-dark m-0">Total: S/ <span id="lblTotal" class="text-success fw-bold">0.00</span></h4>
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-dark">
+                        <i class="fa-solid fa-reply"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar orden
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
-    <div class="form-group">
-        <input type="submit" value="Guardar orden" class="btn btn-primary" />
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     <script>
@@ -90,8 +93,8 @@
             fila += '</select></td>';
             fila += '<td><input type="number" step="0.01" min="0" name="Detalles[' + index + '].Cantidad" class="form-control inputCantidad" value="0" /></td>';
             fila += '<td><input type="number" step="0.01" min="0" name="Detalles[' + index + '].PrecioUnitario" class="form-control inputPrecio" value="0" /></td>';
-            fila += '<td class="tdSubtotal">0.00</td>';
-            fila += '<td><button type="button" class="btn btn-danger btnQuitar">Quitar</button></td>';
+            fila += '<td class="tdSubtotal text-end fw-bold">0.00</td>';
+            fila += '<td class="text-center"><button type="button" class="btn btn-sm btn-danger btnQuitar"><i class="fa-solid fa-trash"></i></button></td>';
             fila += '</tr>';
             return fila;
         }

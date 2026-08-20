@@ -1,0 +1,195 @@
+/* ===== SERFAGAB - Tema adaptado de PROYECTO_LP2_GRUPO_B ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  background-image: url('imagenes/laser.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin-bottom: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ===== Header fijo oscuro ===== */
+.header {
+  width: 100%;
+  background: #1c1c1c;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.btn-menu {
+  color: #fff;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+#btn-menu { display: none; }
+
+/* ===== Menú lateral deslizante ===== */
+.container-menu {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 500ms ease;
+  z-index: 200;
+}
+
+#btn-menu:checked ~ .container-menu {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cont-menu {
+  width: 100%;
+  max-width: 250px;
+  background: #1c1c1c;
+  height: 100vh;
+  transform: translateX(-100%);
+  transition: all 500ms ease;
+  overflow-y: auto;
+}
+
+#btn-menu:checked ~ .container-menu .cont-menu {
+  transform: translateX(0);
+}
+
+.cont-menu nav { padding-top: 40px; }
+
+.cont-menu nav a {
+  display: block;
+  text-decoration: none;
+  padding: 20px;
+  color: #c7c7c7;
+  border-left: 5px solid transparent;
+  transition: all 400ms ease;
+}
+
+.cont-menu nav a:hover {
+  border-left-color: #c7c7c7;
+  background: #2f2f2f;
+}
+
+.cont-menu label {
+  position: absolute;
+  right: 5px;
+  top: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* ===== Contenido principal sobre fondo ===== */
+main {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  min-height: calc(100vh - 70px);
+  padding: 70px 15px 30px;
+}
+
+/* ===== Tarjetas ===== */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  border: none;
+}
+
+.card-dashboard {
+  animation: fadeInUpDashboard 0.6s ease forwards;
+  opacity: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-dashboard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+@keyframes fadeInUpDashboard {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+  padding: 1.5rem;
+}
+
+/* ===== Tablas ===== */
+.table thead th {
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* ===== Botones oscuros (estilo login) ===== */
+.btn-dark {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: none;
+  padding: 0.75rem;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-dark:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-dark:active { transform: scale(0.98); }
+
+/* ===== Login ===== */
+.box-login {
+  max-width: 450px;
+  margin: 0 auto;
+  animation: fadeInUp 0.8s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+.form-control { border-left: none; }
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #16213e;
+  box-shadow: 0 0 0 0.2rem rgba(22, 33, 62, 0.25);
+}
+
+.card-footer {
+  background: #f8f9fa;
+  font-size: 0.9rem;
+}
+
+/* ===== Responsivo ===== */
+@media (max-width: 576px) {
+  .card-dashboard { animation-duration: 0.4s; }
+  .display-6 { font-size: 1.8rem; }
+}

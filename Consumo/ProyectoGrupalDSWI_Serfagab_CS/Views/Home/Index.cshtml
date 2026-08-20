@@ -1,100 +1,117 @@
 ﻿@{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Panel de Control";
     var ultimasOrdenes = ViewBag.UltimasOrdenes as List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra>
         ?? new List<ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra>();
     int i = 0;
 }
 
-<div class="text-center my-4">
-    <h1 class="display-3 fw-bold text-primary">SERFAGAB</h1>
-    <p class="lead text-muted">Gestión de inventario y órdenes de compra</p>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <h2 class="text-white"><i class="fas fa-chart-pie me-2 text-primary"></i>Panel de Control</h2>
+    <span class="badge bg-dark fs-6 px-3 py-2">
+        <i class="far fa-calendar-alt me-1"></i> @DateTime.Now.ToString("dd/MM/yyyy")
+    </span>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 row-cols-lg-6 g-3 mb-4">
-    <div class="col">
-        <div class="card border-top border-4 border-primary h-100">
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 shadow-sm border-0 card-dashboard" style="animation-delay: 0.1s;">
             <div class="card-body text-center">
-                <div class="text-muted small">Tipos de material</div>
-                <div class="display-5 fw-bold">@ViewBag.Tipos</div>
+                <i class="fas fa-tags fa-3x text-primary mb-2"></i>
+                <h5 class="card-title text-muted">Tipos de Material</h5>
+                <p class="display-6 fw-bold text-dark">@ViewBag.Tipos</p>
+                <small class="text-success"><i class="fas fa-check-circle"></i> Registrados</small>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card border-top border-4 border-success h-100">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 shadow-sm border-0 card-dashboard" style="animation-delay: 0.2s;">
             <div class="card-body text-center">
-                <div class="text-muted small">Materiales</div>
-                <div class="display-5 fw-bold">@ViewBag.Materiales</div>
+                <i class="fas fa-boxes-stacked fa-3x text-success mb-2"></i>
+                <h5 class="card-title text-muted">Materiales</h5>
+                <p class="display-6 fw-bold text-dark">@ViewBag.Materiales</p>
+                <small class="text-success"><i class="fas fa-check-circle"></i> Activos</small>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card border-top border-4 border-info h-100">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 shadow-sm border-0 card-dashboard" style="animation-delay: 0.3s;">
             <div class="card-body text-center">
-                <div class="text-muted small">Proveedores</div>
-                <div class="display-5 fw-bold">@ViewBag.Proveedores</div>
+                <i class="fas fa-truck fa-3x text-info mb-2"></i>
+                <h5 class="card-title text-muted">Proveedores</h5>
+                <p class="display-6 fw-bold text-dark">@ViewBag.Proveedores</p>
+                <small class="text-info"><i class="fas fa-check-circle"></i> Registrados</small>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card border-top border-4 border-warning h-100">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 shadow-sm border-0 card-dashboard" style="animation-delay: 0.4s;">
             <div class="card-body text-center">
-                <div class="text-muted small">Órdenes de compra</div>
-                <div class="display-5 fw-bold">@ViewBag.Ordenes</div>
+                <i class="fas fa-file-lines fa-3x text-warning mb-2"></i>
+                <h5 class="card-title text-muted">Órdenes de Compra</h5>
+                <p class="display-6 fw-bold text-dark">@ViewBag.Ordenes</p>
+                <small class="text-warning"><i class="fas fa-clock"></i> @ViewBag.Pendientes pendientes</small>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card border-top border-4 border-dark h-100">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 shadow-sm border-0 card-dashboard" style="animation-delay: 0.5s;">
             <div class="card-body text-center">
-                <div class="text-muted small">Stock total</div>
-                <div class="display-5 fw-bold">@ViewBag.StockTotal.ToString("N2")</div>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card border-top border-4 border-danger h-100">
-            <div class="card-body text-center">
-                <div class="text-muted small">Órdenes pendientes</div>
-                <div class="display-5 fw-bold">@ViewBag.Pendientes</div>
+                <i class="fas fa-cubes fa-3x text-secondary mb-2"></i>
+                <h5 class="card-title text-muted">Stock Total</h5>
+                <p class="display-6 fw-bold text-dark">@ViewBag.StockTotal.ToString("N2")</p>
+                <small class="text-muted"><i class="fas fa-box-open"></i> En inventario</small>
             </div>
         </div>
     </div>
 </div>
 
-<h4>Últimas órdenes de compra</h4>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Proveedor</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (ultimasOrdenes.Count == 0)
-        {
-            <tr>
-                <td colspan="5" class="text-center text-muted">No hay órdenes registradas</td>
-            </tr>
-        }
-        @foreach (var item in ultimasOrdenes)
-        {
-            <tr>
-                <td>@(++i)</td>
-                <td>@item.Proveedor</td>
-                <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
-                <td><span class="badge @(item.Estado switch
-                {
-                    "PENDIENTE" => "bg-warning text-dark",
-                    "APROBADA" => "bg-info text-dark",
-                    "RECIBIDA" => "bg-success",
-                    "ANULADA" => "bg-secondary",
-                    _ => "bg-secondary"
-                })">@item.Estado</span></td>
-                <td>S/ @item.Total.ToString("N2")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="card shadow-sm border-0 card-dashboard" style="animation-delay: 0.6s;">
+    <div class="card-header bg-dark text-white d-flex flex-wrap justify-content-between align-items-center">
+        <span><i class="fas fa-clock me-2"></i>Últimas Órdenes de Compra</span>
+        <a asp-area="" asp-controller="OrdenCompra" asp-action="Index" class="btn btn-sm btn-outline-light">
+            <i class="fas fa-eye me-1"></i> Ver todas
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Proveedor</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ultimasOrdenes.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No hay órdenes registradas</td>
+                        </tr>
+                    }
+                    @foreach (var item in ultimasOrdenes)
+                    {
+                        <tr>
+                            <td><span class="badge bg-secondary">@(++i)</span></td>
+                            <td>@item.Proveedor</td>
+                            <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <span class="badge @(item.Estado switch
+                                {
+                                    "PENDIENTE" => "bg-warning text-dark",
+                                    "APROBADA" => "bg-info text-dark",
+                                    "RECIBIDA" => "bg-success",
+                                    "ANULADA" => "bg-secondary",
+                                    _ => "bg-secondary"
+                                })">@item.Estado</span>
+                            </td>
+                            <td class="text-end fw-bold">S/ @item.Total.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

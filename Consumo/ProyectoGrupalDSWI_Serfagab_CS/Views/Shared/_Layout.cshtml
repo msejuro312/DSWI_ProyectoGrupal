@@ -1,79 +1,94 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ProyectoGrupalDSWI_Serfagab_ConsumoServicios</title>
+    <title>@ViewData["Title"] - SERFAGAB</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/serfagab.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ProyectoGrupalDSWI_Serfagab_ConsumoServicios.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ProyectoGrupalDSWI_Serfagab_ConsumoServicios</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="TipoMaterial" asp-action="Index">Tipos de Material</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Material" asp-action="Index">Materiales</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Proveedor" asp-action="Index">Proveedores</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="OrdenCompra" asp-action="Index">Órdenes de Compra</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    @if (User.Identity.IsAuthenticated)
-                    {
-                        <ul class="navbar-nav align-items-center">
-                            <li class="nav-item me-2">
-                                <span class="navbar-text">
-                                    Hola, @User.Identity.Name (<span class="badge @(User.IsInRole("ADMIN") ? "bg-danger" : "bg-secondary")">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>)
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <form asp-controller="Login" asp-action="Logout" method="post">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cerrar sesión</button>
-                                </form>
-                            </li>
-                        </ul>
-                    }
+    @if (User.Identity.IsAuthenticated)
+    {
+        <header class="header">
+            <div class="container-fluid d-flex justify-content-between align-items-center py-2">
+                <div class="btn-menu">
+                    <label for="btn-menu"><i class="fa-solid fa-bars"></i></label>
+                </div>
+                <div class="text-white text-end">
+                    <h1 class="h5 m-0">
+                        SERFAGAB - Bienvenido,
+                        <span>
+                            @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value
+                            <span class="badge @(User.IsInRole("ADMIN") ? "bg-danger" : "bg-secondary")">
+                                @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                            </span>
+                        </span>
+                    </h1>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+        </header>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - ProyectoGrupalDSWI_Serfagab_ConsumoServicios - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        <input type="checkbox" id="btn-menu">
+
+        <div class="container-menu">
+            <div class="cont-menu">
+                <nav>
+                    <a asp-area="" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-house"></i> Inicio</a>
+                    <a asp-area="" asp-controller="Proveedor" asp-action="Index"><i class="fa-solid fa-truck"></i> Proveedores</a>
+                    <a asp-area="" asp-controller="TipoMaterial" asp-action="Index"><i class="fa-solid fa-tags"></i> Tipo Material</a>
+                    <a asp-area="" asp-controller="Material" asp-action="Index"><i class="fa-solid fa-boxes-stacked"></i> Materiales</a>
+                    <a asp-area="" asp-controller="OrdenCompra" asp-action="Create"><i class="fa-solid fa-cart-plus"></i> Registrar OC</a>
+                    <a asp-area="" asp-controller="OrdenCompra" asp-action="Index"><i class="fa-solid fa-file-lines"></i> Consulta OC</a>
+                    <a href="#" id="cerrarSesionLink"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a>
+                </nav>
+                <label for="btn-menu"><i class="fa-solid fa-xmark"></i></label>
+            </div>
         </div>
-    </footer>
+    }
+
+    <main>
+        <div class="container mt-5 pt-3">
+            @RenderBody()
+        </div>
+    </main>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <script>
+            document.getElementById("cerrarSesionLink").addEventListener("click", function (e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: "¿Deseas cerrar sesión?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Sí, cerrar",
+                    cancelButtonText: "No"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var form = document.createElement("form");
+                        form.method = "post";
+                        form.action = "@Url.Action("Logout", "Login")";
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        </script>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

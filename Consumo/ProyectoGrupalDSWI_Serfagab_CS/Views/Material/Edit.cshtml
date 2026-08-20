@@ -1,60 +1,80 @@
 @model ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.Material
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Material";
 }
 
-<h1>Edit</h1>
+<div class="card shadow-lg">
+    <div class="card-body">
+        <h1 class="card-title text-center">
+            <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Editar Material
+        </h1>
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-6">
+                <form asp-action="Edit" class="row g-3" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="IdMaterial" />
 
-<h4>Material</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="IdMaterial" class="control-label"></label>
-                <input asp-for="IdMaterial" class="form-control" />
-                <span asp-validation-for="IdMaterial" class="text-danger"></span>
+                    <div class="col-md-12">
+                        <label asp-for="Nombre" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-tag"></i></span>
+                            <input asp-for="Nombre" class="form-control" placeholder="Nombre del material" />
+                        </div>
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IdTipoMaterial" class="form-label"></label>
+                        <select asp-items="@ViewBag.tipos" asp-for="IdTipoMaterial" class="form-select"></select>
+                        <span asp-validation-for="IdTipoMaterial" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="UnidadMedida" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-ruler"></i></span>
+                            <input asp-for="UnidadMedida" class="form-control" placeholder="Ej: unidad, metro" />
+                        </div>
+                        <span asp-validation-for="UnidadMedida" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="StockActual" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-cubes-stacked"></i></span>
+                            <input asp-for="StockActual" type="number" min="0" step="0.01" class="form-control" />
+                        </div>
+                        <span asp-validation-for="StockActual" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="PrecioReferencial" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">S/.</span>
+                            <input asp-for="PrecioReferencial" type="number" min="0" step="0.01" class="form-control" />
+                        </div>
+                        <span asp-validation-for="PrecioReferencial" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label"></label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Descripción del material"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12 d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-dark">
+                            <i class="fa-solid fa-reply"></i> Regresar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="IdTipoMaterial" class="control-label"></label>
-                <select asp-items="@ViewBag.tipos" asp-for="IdTipoMaterial" class="form-select"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Nombre" class="control-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UnidadMedida" class="control-label"></label>
-                <input asp-for="UnidadMedida" class="form-control" />
-                <span asp-validation-for="UnidadMedida" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StockActual" class="control-label"></label>
-                <input asp-for="StockActual" type="number" min="0" step="0.01" class="form-control" />
-                <span asp-validation-for="StockActual" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PrecioReferencial" class="control-label"></label>
-                <input asp-for="PrecioReferencial" type="number" min="0" step="0.01" class="form-control" />
-                <span asp-validation-for="PrecioReferencial" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Descripcion" class="control-label"></label>
-                <input asp-for="Descripcion" class="form-control" />
-                <span asp-validation-for="Descripcion" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

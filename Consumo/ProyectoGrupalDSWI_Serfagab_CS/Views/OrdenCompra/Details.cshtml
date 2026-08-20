@@ -1,86 +1,66 @@
 @model ProyectoGrupalDSWI_Serfagab_ConsumoServicios.Models.OrdenCompra
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalle de Orden de Compra";
 }
 
-<h1>Detalle de Orden de Compra</h1>
+<div class="card shadow-lg">
+    <div class="card-body">
+        <h1 class="card-title">
+            <i class="fa-solid fa-file-lines me-2 text-primary"></i>Detalle de Orden @Model.IdOrdenCompra
+        </h1>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Proveedor)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Proveedor)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Fecha)</dt>
+            <dd class="col-sm-9">@Model.Fecha.ToString("dd/MM/yyyy")</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Estado)</dt>
+            <dd class="col-sm-9">
+                @{
+                    var badge = Model.Estado switch
+                    {
+                        "PENDIENTE" => "bg-warning text-dark",
+                        "APROBADA" => "bg-info text-dark",
+                        "RECIBIDA" => "bg-success",
+                        "ANULADA" => "bg-secondary",
+                        _ => "bg-secondary"
+                    };
+                }
+                <span class="badge @badge">@Model.Estado</span>
+            </dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Observaciones)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Observaciones)</dd>
+        </dl>
 
-<div>
-    <h4>Orden @Html.DisplayFor(model => model.IdOrdenCompra)</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Proveedor)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Proveedor)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Fecha)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Fecha)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Estado)
-        </dt>
-        <dd class="col-sm-10">
-            @{
-                var badge = Model.Estado switch
+        <h4 class="text-dark"><i class="fa-solid fa-list me-2"></i>Detalles</h4>
+        <table class="table table-hover table-responsive table-secondary">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Material</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Detalles)
                 {
-                    "PENDIENTE" => "bg-warning text-dark",
-                    "APROBADA" => "bg-info text-dark",
-                    "RECIBIDA" => "bg-success",
-                    "ANULADA" => "bg-secondary",
-                    _ => "bg-secondary"
-                };
-            }
-            <span class="badge @badge">@Model.Estado</span>
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Observaciones)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Observaciones)
-        </dd>
-    </dl>
-</div>
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Material)</td>
+                        <td class="text-center">@Html.DisplayFor(modelItem => item.Cantidad)</td>
+                        <td class="text-end">S/ @item.PrecioUnitario.ToString("N2")</td>
+                        <td class="text-end fw-bold">S/ @item.Subtotal.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-<h4>Detalles</h4>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Material</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario</th>
-            <th>Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.Detalles) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Material)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cantidad)
-            </td>
-            <td>
-                S/ @item.PrecioUnitario.ToString("N2")
-            </td>
-            <td>
-                S/ @item.Subtotal.ToString("N2")
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
-
-<div class="form-group">
-    <h4>Total: S/ @Model.Total.ToString("N2")</h4>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <h4 class="text-dark m-0">Total: <span class="text-success fw-bold">S/ @Model.Total.ToString("N2")</span></h4>
+            <a asp-action="Index" class="btn btn-outline-dark">
+                <i class="fa-solid fa-reply"></i> Regresar
+            </a>
+        </div>
+    </div>
 </div>
