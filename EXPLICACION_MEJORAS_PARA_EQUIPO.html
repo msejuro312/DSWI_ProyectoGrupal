@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mejoras visuales SERFAGAB - Explicación para el equipo</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f6fb; color: #2b2b2b; margin: 0; padding: 24px; line-height: 1.7; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { color: #1f3a8a; border-bottom: 3px solid #4f7cff; padding-bottom: 10px; }
+  h2 { color: #2c52c4; margin-top: 34px; border-left: 5px solid #4f7cff; padding-left: 12px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px 24px; margin: 14px 0; box-shadow: 0 3px 12px rgba(31,58,138,0.08); }
+  .paso { counter-increment: paso; }
+  .paso::before { content: "Paso " counter(paso); display: inline-block; background: #4f7cff; color: #fff; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px; font-size: 14px; }
+  code { background: #eef1fb; padding: 2px 6px; border-radius: 4px; font-family: Consolas, monospace; color: #1f3a8a; }
+  pre { background: #12122a; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: Consolas, monospace; color: #a8ffb0; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 8px; overflow: hidden; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid #e3e8f5; font-size: 14px; }
+  th { background: #4f7cff; color: #fff; }
+  tr:last-child td { border-bottom: none; }
+  .ok { background: #e7f7ee; border-left: 5px solid #3ddc84; padding: 12px 16px; border-radius: 6px; margin: 12px 0; }
+  .warn { background: #fff4e0; border-left: 5px solid #ffb020; padding: 12px 16px; border-radius: 6px; margin: 12px 0; }
+  ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎨 Mejoras visuales SERFAGAB</h1>
+  <p>Explicación simple de lo que se hizo y cómo se aplicó al proyecto, para que todo el equipo entienda.</p>
+
+  <div class="card ok">
+    <b>✅ Primero, lo importante:</b> el proyecto sigue cumpliendo lo que pidió el profesor.
+    El <b>frontend</b> sigue siendo <b>ASP.NET Core MVC</b> y la <b>API</b> sigue siendo <b>ASP.NET Core Web API</b>.
+    Solo se cambió la <b>apariencia</b> (colores, menú, tarjetas), no la lógica ni la arquitectura.
+  </div>
+
+  <h2>¿Qué problema había?</h2>
+  <div class="card">
+    <p>El proyecto funcionaba bien, pero las páginas se veían "básicas" (estilo por defecto de Visual Studio).</p>
+    <p>Se adaptó el estilo de una plantilla de referencia (PROYECTO_LP2_GRUPO_B) para que el sistema se viera más profesional y moderno: <b>tema oscuro, menú lateral, tarjetas, colores corporativos</b>.</p>
+  </div>
+
+  <h2>¿Qué se cambió?</h2>
+  <div class="card">
+    <p>Se modificaron <b>solo archivos de presentación</b> dentro de <code>Consumo</code>. No se tocó la lógica ni la WebApi.</p>
+    <table>
+      <thead><tr><th>Qué</th><th>Dónde</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td>Hoja de estilos nueva</td><td><code>wwwroot/css/serfagab.css</code></td><td>Define los colores, el tema oscuro, el menú lateral y las tarjetas.</td></tr>
+        <tr><td>Imagen de fondo</td><td><code>wwwroot/css/imagenes/laser.jpg</code></td><td>Imagen de fondo del login / cabecera.</td></tr>
+        <tr><td>Plantilla general</td><td><code>Views/Shared/_Layout.cshtml</code></td><td>El "molde" de todas las páginas: cabecera oscura, menú lateral, botón de salir.</td></tr>
+        <tr><td>Login</td><td><code>Views/Login/Index.cshtml</code></td><td>Pantalla de ingreso con fondo oscuro y tarjeta centrada.</td></tr>
+        <tr><td>Inicio</td><td><code>Views/Home/Index.cshtml</code></td><td>Panel principal con tarjetas de resumen.</td></tr>
+        <tr><td>Listados y formularios</td><td><code>Views/Material</code>, <code>Proveedor</code>, <code>TipoMaterial</code>, <code>OrdenCompra</code></td><td>Tablas con búsqueda/orden y formularios con el nuevo estilo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>¿Cómo se aplicó? (paso a paso)</h2>
+
+  <div class="card paso">Se trabajó primero en una <b>copia de prueba</b> aislada (sin tocar el repositorio real), para probar los cambios sin riesgo de romper nada.</div>
+
+  <div class="card paso">Se probó todo en esa copia: que el login funcionara, que los listados mostraran datos y que las tablas ordenaran bien.</div>
+
+  <div class="card paso">Cuando ya se verificó que estaba bien, se copiaron los archivos al proyecto real, manteniendo la misma estructura de carpetas:
+    <ul>
+      <li><code>Consumo/ProyectoGrupalDSWI_Serfagab_CS/Views/</code> (las páginas)</li>
+      <li><code>Consumo/ProyectoGrupalDSWI_Serfagab_CS/wwwroot/css/</code> (estilos e imagen)</li>
+    </ul>
+  </div>
+
+  <div class="card paso">Se recompiló y se probó el proyecto <b>Consumo</b> (la WebApi debe estar corriendo aparte, porque provee los datos).</div>
+
+  <div class="card paso">Se subió el cambio al repositorio con git (commit y push).</div>
+
+  <h2>⚠️ Detalles que debes saber para no romper nada</h2>
+  <div class="card warn">
+    <ul>
+      <li>La carpeta <code>wwwroot</code> <b>no puede renombrarse</b>: es el nombre obligatorio de ASP.NET Core para servir archivos estáticos (CSS, JS, imágenes).</li>
+      <li>Al reemplazar <code>Views</code>, <b>no borres</b> <code>_ViewStart.cshtml</code> ni <code>_ViewImports.cshtml</code> (están en la raíz de <code>Views</code>). Sin ellos las páginas no se renderizan.</li>
+      <li>Para ver los cambios al navegar, usa <b>Ctrl + F5</b> (refresco forzado) para que no quede la versión guardada en caché del navegador.</li>
+      <li>Deben correr <b>los dos proyectos</b>: la WebApi (puerto 7229) y Consumo. Consumo pide los datos a la WebApi.</li>
+    </ul>
+  </div>
+
+  <h2>🛠️ Para correr el proyecto (para cualquier compañero)</h2>
+  <div class="card">
+    <ol>
+      <li>Clona el repositorio.</li>
+      <li>Abre la solución <code>DSWI_ProyectoGrupal.sln</code> (o los proyectos por separado).</li>
+      <li>Ejecuta primero la <b>WebApi</b>, luego <b>Consumo</b>.</li>
+      <li>Abre el navegador en la URL de Consumo y haz <b>Ctrl + F5</b>.</li>
+      <li>Ingresa con las credenciales del sistema (ej. admin).</li>
+    </ol>
+  </div>
+
+  <div class="card ok">
+    <b>Resumen:</b> los cambios son 100% visuales y de presentación. No afectan la lógica de negocio, la base de datos ni la API. Cumple con el requisito del profesor (front en .NET MVC, API en .NET).
+  </div>
+</div>
+</body>
+</html>
